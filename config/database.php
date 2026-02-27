@@ -1,6 +1,6 @@
 <?php
 $hostAtual = $_SERVER['HTTP_HOST'] ?? '';
-
+define('BASE_URL', '/usuarios/');
 $ambiente = (
     $hostAtual === 'localhost' ||
     $hostAtual === 'localhost'

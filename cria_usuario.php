@@ -5,7 +5,7 @@ $senha = '123456';
 $hash = password_hash($senha, PASSWORD_DEFAULT);
 
 $stmt = $conn->prepare(
-    "INSERT INTO usuarios (nome, email, senha, perfil, ativo)
+    "INSERT INTO usuarios (nome_usuario, email, senha, perfil, ativo)
      VALUES (?, ?, ?, ?, 1)"
 );
 

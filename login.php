@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $_POST['senha'] ?? '';
 
     $stmt = $conn->prepare(
-        "SELECT id, nome, perfil, senha
+        "SELECT id_usuario, nome_usuario, perfil, senha
          FROM usuarios
          WHERE email = ? AND ativo = 1"
     );
@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $resultado->fetch_assoc();
 
     if ($user && password_verify($senha, $user['senha'])) {
-        $_SESSION['usuario_id'] = $user['id'];
-        $_SESSION['nome'] = $user['nome'];
+        $_SESSION['usuario_id'] = $user['id_usuario'];
+        $_SESSION['nome'] = $user['nome_usuario'];
         $_SESSION['perfil'] = $user['perfil'];
 
         header("Location: index.php");

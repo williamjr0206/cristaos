@@ -1,0 +1,58 @@
+<?php
+session_start();
+
+require __DIR__ . '/config/database.php';
+require __DIR__ . '/config/auth.php';
+
+// garante que está logado
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit;
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel - Imóveis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        .menu a {
+            display: inline-block;
+            margin: 6px 10px 6px 0;
+            padding: 10px 15px;
+            background: #f0f0f0;
+            text-decoration: none;
+            border-radius: 4px;
+            color: #000;
+        }
+        .menu a:hover {
+            background: #ddd;
+        }
+        .logout {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<h1>Sistema da Igrejas Cristãs no Brasil</h1>
+<h2>Bem-vindo, <?= htmlspecialchars($_SESSION['nome']) ?></h2>
+<p>Perfil: <strong><?= $_SESSION['perfil'] ?></strong></p>
+
+<div class="menu">
+    <?php if ($_SESSION['perfil'] === 'ADMIN'): ?>
+        <a href="cadastros/usuarios.php">👤 Usuários</a>
+    <?php endif; ?>
+
+    <a href="<?= BASE_URL ?>cadastros/usuarios.php">👤 Usuários</a>
+    <a href="<?= BASE_URL ?>logout.php">🚪 Sair</a>
+</div>
+
+</body>
+</html>
