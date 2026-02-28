@@ -14,8 +14,8 @@ verificaPerfil(['ADMIN']);
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id     = $_POST['id'] ?? null;
-    $nome   = $_POST['nome'];
+    $id     = $_POST['id_usuario'] ?? null;
+    $nome   = $_POST['nome_usuario'];
     $email  = $_POST['email'];
     $perfil = $_POST['perfil'];
     $ativo  = isset($_POST['ativo']) ? 1 : 0;
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($senha) {
             $stmt = $conn->prepare("
                 UPDATE usuarios
-                SET nome = ?, email = ?, perfil = ?, senha = ?, ativo = ?
+                SET nome_usuario = ?, email = ?, perfil = ?, senha = ?, ativo = ?
                 WHERE id = ?
             ");
             $stmt->bind_param(
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = $conn->prepare("
                 UPDATE usuarios
-                SET nome = ?, email = ?, perfil = ?, ativo = ?
+                SET nome_usuario = ?, email = ?, perfil = ?, ativo = ?
                 WHERE id = ?
             ");
             $stmt->bind_param(
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $stmt = $conn->prepare("
             INSERT INTO usuarios
-            (nome, email, senha, perfil, ativo)
+            (nome_usuario, email, senha, perfil, ativo)
             VALUES (?, ?, ?, ?, ?)
         ");
         $stmt->bind_param(
@@ -94,7 +94,7 @@ if (isset($_GET['delete'])) {
 ===================== */
 $editar = null;
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM usuarios WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
     $stmt->bind_param("i", $_GET['edit']);
     $stmt->execute();
     $editar = $stmt->get_result()->fetch_assoc();
@@ -107,7 +107,7 @@ $usuarios = [];
 $result = $conn->query("
     SELECT id_usuario, nome_usuario, email, perfil, ativo
     FROM usuarios
-    ORDER BY nome
+    ORDER BY nome_usuario
 ");
 
 while ($row = $result->fetch_assoc()) {
@@ -135,10 +135,10 @@ while ($row = $result->fetch_assoc()) {
 <h2><?= $editar ? 'Editar Usuário' : 'Novo Usuário' ?></h2>
 
 <form method="post">
-    <input type="hidden" name="id" value="<?= $editar['id'] ?? '' ?>">
+    <input type="hidden" name="id_usuario" value="<?= $editar['id_usuario'] ?? '' ?>">
 
     <label>Nome</label>
-    <input name="nome" required value="<?= $editar['nome'] ?? '' ?>">
+    <input name="nome_usuario" required value="<?= $editar['nome_usuario'] ?? '' ?>">
 
     <label>Email</label>
     <input type="email" name="email" required value="<?= $editar['email'] ?? '' ?>">
@@ -158,8 +158,7 @@ while ($row = $result->fetch_assoc()) {
 
     <label>
         <input type="checkbox" name="ativo"
-            <?= (!isset($editar) || ($editar['ativo'] ?? 1)) ? 'checked' : '' ?>>
-        Ativo
+            <?= (!isset($editar) || ($editar['ativo'] ?? 1)) ? 'checked' : '' ?>> Ativo
     </label>
 
     <button type="submit">
@@ -184,14 +183,14 @@ while ($row = $result->fetch_assoc()) {
 
     <?php foreach ($usuarios as $u): ?>
         <tr>
-            <td><?= htmlspecialchars($u['nome']) ?></td>
+            <td><?= htmlspecialchars($u['nome_usuario']) ?></td>
             <td><?= htmlspecialchars($u['email']) ?></td>
             <td><?= $u['perfil'] ?></td>
             <td><?= $u['ativo'] ? 'Ativo' : 'Inativo' ?></td>
             <td>
-                <a href="usuarios.php?edit=<?= $u['id'] ?>">Editar</a>
+                <a href="usuarios.php?edit=<?= $u['id_usuario'] ?>">Editar</a>
 
-                <a href="usuarios.php?delete=<?= $u['id'] ?>"
+                <a href="usuarios.php?delete=<?= $u['id_usuario'] ?>"
                    onclick="return confirm('Deseja excluir este usuário?')">
                    Excluir
                 </a>
