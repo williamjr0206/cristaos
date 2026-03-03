@@ -3,7 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function verificaPerfil(array $perfisPermitidos) {
+function verificaPerfil(array $perfisPermitidos)
+{
+    echo $perfisPermitidos;
     if (
         !isset($_SESSION['usuario_id']) ||
         !in_array($_SESSION['perfil'], $perfisPermitidos)

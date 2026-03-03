@@ -49,8 +49,8 @@ if (!isset($_SESSION['usuario_id'])) {
     <?php if ($_SESSION['perfil'] === 'ADMIN'): ?>
         <a href="<?= BASE_URL ?>cadastros/usuarios.php">👤 Usuários</a>
     <?php endif; ?>
-
-    <a href="<?= BASE_URL ?>login.php">🚪 Sair</a>
+        <a href="<?= BASE_URL ?>cadastros/igrejas.php">⛪ Igrejas</a>
+    <a href="login.php">🚪 Sair</a>
 </div>
 
 </body>
