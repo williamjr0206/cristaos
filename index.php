@@ -47,10 +47,10 @@ if (!isset($_SESSION['usuario_id'])) {
 
 <div class="menu">
     <?php if ($_SESSION['perfil'] === 'ADMIN'): ?>
-        <a href="/cadastros/usuarios.php">👤 Usuários</a>
+        <a href="<?= BASE_URL ?>cadastros/usuarios.php">👤 Usuários</a>
     <?php endif; ?>
 
-    <a href="/login.php">🚪 Sair</a>
+    <a href="<?= BASE_URL ?>login.php">🚪 Sair</a>
 </div>
 
 </body>

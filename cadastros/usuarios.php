@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->execute();
-    header("Location: usuarios.php");
+    header("Location: " . BASE_URL . "login.php");
     exit;
 }
 
@@ -85,9 +85,8 @@ if (isset($_GET['delete'])) {
     $stmt->bind_param("i", $_GET['delete']);
     $stmt->execute();
 
-    header("Location: usuarios.php");
-    exit;
-}
+header("Location: " . BASE_URL . "usuarios.php");
+exit;}
 
 /* =====================
    3) CARREGAR EDIÇÃO
