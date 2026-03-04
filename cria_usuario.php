@@ -11,7 +11,7 @@ $stmt = $conn->prepare(
 
 $nome   = 'Administrador';
 $email  = 'admin@teste.com';
-$perfil = 'admin';
+$perfil = 'ADMIN';
 
 $stmt->bind_param("ssss", $nome, $email, $hash, $perfil);
 

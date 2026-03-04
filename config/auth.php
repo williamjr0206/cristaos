@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function verificaPerfil(array $perfisPermitidos)
 {
-    echo $perfisPermitidos;
     if (
         !isset($_SESSION['usuario_id']) ||
         !in_array($_SESSION['perfil'], $perfisPermitidos)

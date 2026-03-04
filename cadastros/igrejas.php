@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cep         = $_POST['cep'] ?? '';
     $latitude    = $_POST['latitude'] ?? '';
     $longitude   = $_POST['longitude'] ?? '';
+
     if ($id) {
         $stmt = $conn->prepare("
             UPDATE igrejas
@@ -30,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             endereco = ?, cep = ?, latitude = ?, longitude = ? 
             WHERE id_igreja = ?
         ");
-        $stmt->bind_param("ssssi", $nome, $denominacao, $pais, $estado,$municipio,$endereco,$cep,
+        $stmt->bind_param("ssssssissi", $nome, $denominacao, $pais, $estado,$municipio,$endereco,$cep,
         $latitude,$longitude, $id);
     } else {
         $stmt = $conn->prepare("
@@ -38,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             endereco, cep, latitude, longitude)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("ssss", $nome, $denominacao, $pais, $estado, $municipio, $endereco,
+        $stmt->bind_param("ssssssiss", $nome, $denominacao, $pais, $estado, $municipio, $endereco,
         $cep, $latitude, $longitude);
     }
 
@@ -97,7 +98,7 @@ if ($result) {
         form { margin-bottom: 30px; }
         input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; }
+        th, td { border: 1px solid #ccc; padding: 5px; }
         th { background: #eee; }
         a { margin-right: 10px; }
     </style>
@@ -129,7 +130,7 @@ if ($result) {
 
 
     <label>Cep:</label>
-    <input  type ="number" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
+    <input name = "cep" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
 
     <label>Latitude:</label>
     <input  name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">
@@ -144,28 +145,32 @@ if ($result) {
     <?php endif; ?>
 </form>
 
-<h2>Lista de Igrejas Cristãs</h2>
+<h2>Lista de Igrejas Cristãs Cadastradas</h2>
 
 <table>
     <tr>
         <th>Nome</th>
-        <th>Denominação</th>
         <th>Pais</th>
-        <th>Município</th>
+        <th>Cidade</th>
+        <th>Cep</th>
         <th>Endereço</th>
+        <th>Lat.</th>
+        </tr>Long.</th>
         <th>Ações</th>
     </tr>
 
     <?php foreach ($igrejas as $p): ?>
         <tr>
             <td><?= htmlspecialchars($p['nome']) ?></td>
-            <td><?= htmlspecialchars($p['denominacao']) ?></td>
             <td><?= htmlspecialchars($p['pais']) ?></td>
             <td><?= htmlspecialchars($p['municipio']) ?></td>
+            <td><?= htmlspecialchars($p['cep']) ?></td>
             <td><?= htmlspecialchars($p['endereco']) ?></td>
+            <td><?= htmlspecialchars($p['latitude']) ?></td>
+            <td><?= htmlspecialchars($p['longitude']) ?></td>
             <td>
-                <a href="igrejas.php?edit=<?= $p['id'] ?>">Editar</a>
-                <a href="igrejas.php?delete=<?= $p['id'] ?>"
+                <a href="igrejas.php?edit=<?= $p['id_igreja'] ?>">Editar</a>
+                <a href="igrejas.php?delete=<?= $p['id_igreja'] ?>"
                    onclick="return confirm('Deseja excluir esta Igreja ?')">
                    Excluir
                 </a>
