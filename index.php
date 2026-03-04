@@ -48,6 +48,7 @@ if (!isset($_SESSION['usuario_id'])) {
 <div class="menu">
     <?php if ($_SESSION['perfil'] === 'ADMIN'): ?>
         <a href="<?= BASE_URL ?>cadastros/usuarios.php">👤 Usuários</a>
+        <a href="<?= BASE_URL ?>cadastros/cargos.php">👨‍🔬 Cargos</a>
     <?php endif; ?>
         <a href="<?= BASE_URL ?>cadastros/igrejas.php">⛪ Igrejas</a>
     <a href="login.php">🚪 Sair</a>

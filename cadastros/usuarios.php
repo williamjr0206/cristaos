@@ -60,10 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("
             INSERT INTO usuarios
             (nome_usuario, email, senha, perfil, ativo)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, 1)
         ");
         $stmt->bind_param(
-            "ssssi",
+            "ssss",
             $nome,
             $email,
             password_hash($_POST['senha'], PASSWORD_DEFAULT),
