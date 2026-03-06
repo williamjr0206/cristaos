@@ -14,25 +14,25 @@ verificaPerfil(['ADMIN','OPERADOR']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id            = $_POST['id'] ?? null;
-    $nome_do_curso = $_POST['nome_do_curso'] ?? '';
+    $nome_do_professor = $_POST['nome_do_professor'] ?? '';
 
     if ($id) {
         $stmt = $conn->prepare("
-            UPDATE cursos
-            SET nome_do_curso = ? 
-            WHERE id_curso = ?
+            UPDATE professores
+            SET nome_do_professor = ? 
+            WHERE id_professor = ?
         ");
-        $stmt->bind_param("si", $nome_do_curso, $id);
+        $stmt->bind_param("si", $nome_do_professor, $id);
     } else {
         $stmt = $conn->prepare("
-            INSERT INTO cursos (nome_do_curso)
+            INSERT INTO professores (nome_do_professor)
             VALUES (?)
         ");
-        $stmt->bind_param("s", $nome_do_curso);
+        $stmt->bind_param("s", $nome_do_professor);
     }
 
     $stmt->execute();
-    header("Location: cursos.php");
+    header("Location: professores.php");
     exit;
 }
 
@@ -43,11 +43,11 @@ if (isset($_GET['delete'])) {
 
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM cursoos WHERE id_curso = ?");
+    $stmt = $conn->prepare("DELETE FROM professores WHERE id_professor = ?");
     $stmt->bind_param("i", $_GET['delete']);
     $stmt->execute();
 
-    header("Location: cursos.php");
+    header("Location: professores.php");
     exit;
 }
 
@@ -57,7 +57,7 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM cursos WHERE id_curso = ?");
+    $stmt = $conn->prepare("SELECT * FROM professores WHERE id_professor = ?");
     $stmt->bind_param("i", $_GET['edit']);
     $stmt->execute();
     $editar = $stmt->get_result()->fetch_assoc();
@@ -66,12 +66,12 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$cursos = [];
+$professores = [];
 
-$result = $conn->query("SELECT * FROM cursos ORDER BY nome_do_curso");
+$result = $conn->query("SELECT * FROM professores ORDER BY nome_do_professor");
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $cursos[] = $row;
+        $professores[] = $row;
     }
 }
 ?>
@@ -80,7 +80,7 @@ if ($result) {
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cursos</title>
+    <title>Professores</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
@@ -93,37 +93,37 @@ if ($result) {
 </head>
 <body>
 
-<h2><?= $editar ? 'Editar curso' : 'Novo curso' ?></h2>
+<h2><?= $editar ? 'Editar Professor' : 'Novo Professor' ?></h2>
 
 <form method="post">
-    <input type="hidden" name="id" value="<?= $editar['id_cargo'] ?? '' ?>">
+    <input type="hidden" name="id" value="<?= $editar['id_professor'] ?? '' ?>">
 
-    <label>Nome do Curso:</label>
-    <input name="nome_do_curso" required value="<?= htmlspecialchars($editar['nome_do_curso'] ?? '') ?>">
+    <label>Nome do Professor(a):</label>
+    <input name="nome_do_professor" required value="<?= htmlspecialchars($editar['nome_do_professor'] ?? '') ?>">
 
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
     <?php if ($editar): ?>
-        <a href="cursos.php">Cancelar</a>
+        <a href="professore.php">Cancelar</a>
     <?php endif; ?>
 </form>
 
-<h2>Lista dos Cursos nas Igrejas Cristãs:</h2>
+<h2>Lista dos Professores(as) nas Igrejas Cristãs:</h2>
 
 <table>
     <tr>
-        <th>Nome do Curso:</th>
+        <th>Nome do Professor(a):</th>
         <th>Ações</th>
     </tr>
 
-    <?php foreach ($cursos as $p): ?>
+    <?php foreach ($professores as $p): ?>
         <tr>
-            <td><?= htmlspecialchars($p['nome_do_curso']) ?></td>
+            <td><?= htmlspecialchars($p['nome_do_professor']) ?></td>
             <td>
-                <a href="cursos.php?edit=<?= $p['id_curso'] ?>">Editar</a>
-                <a href="cursos.php?delete=<?= $p['id_curso'] ?>"
-                   onclick="return confirm('Deseja excluir este curso ?')">
+                <a href="professores.php?edit=<?= $p['id_professor'] ?>">Editar</a>
+                <a href="professores.php?delete=<?= $p['id_professor'] ?>"
+                   onclick="return confirm('Deseja excluir este Professor ?')">
                    Excluir
                 </a>
             </td>
