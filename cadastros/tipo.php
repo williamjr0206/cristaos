@@ -18,21 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id) {
         $stmt = $conn->prepare("
-            UPDATE eventos
+            UPDATE tipo
             SET descricao = ? 
-            WHERE id_evento = ?
+            WHERE id_tipo = ?
         ");
         $stmt->bind_param("si", $descricao, $id);
     } else {
         $stmt = $conn->prepare("
-            INSERT INTO eventos (descricao)
+            INSERT INTO tipo (descricao)
             VALUES (?)
         ");
         $stmt->bind_param("s", $descricao);
     }
 
     $stmt->execute();
-    header("Location: eventos.php");
+    header("Location: tipo.php");
     exit;
 }
 
@@ -43,11 +43,11 @@ if (isset($_GET['delete'])) {
 
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM eventos WHERE id_evento = ?");
+    $stmt = $conn->prepare("DELETE FROM tipo WHERE id_tipo = ?");
     $stmt->bind_param("i", $_GET['delete']);
     $stmt->execute();
 
-    header("Location: eventos.php");
+    header("Location: tipo.php");
     exit;
 }
 
@@ -57,7 +57,7 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM eventos WHERE id_evento = ?");
+    $stmt = $conn->prepare("SELECT * FROM tipo WHERE id_tipo = ?");
     $stmt->bind_param("i", $_GET['edit']);
     $stmt->execute();
     $editar = $stmt->get_result()->fetch_assoc();
@@ -66,12 +66,12 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$eventos = [];
+$tipo = [];
 
-$result = $conn->query("SELECT * FROM eventos ORDER BY descricao");
+$result = $conn->query("SELECT * FROM tipo ORDER BY descricao");
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $eventos[] = $row;
+        $tipo[] = $row;
     }
 }
 ?>
@@ -93,10 +93,10 @@ if ($result) {
 </head>
 <body>
 
-<h2><?= $editar ? 'Editar Evento' : 'Novo Evento' ?></h2>
+<h2><?= $editar ? 'Editar Tipo de Membro' : 'Novo Tipo de Membro' ?></h2>
 
 <form method="post">
-    <input type="hidden" name="id" value="<?= $editar['id_evento'] ?? '' ?>">
+    <input type="hidden" name="id" value="<?= $editar['id_tipo'] ?? '' ?>">
 
     <label>Descrição do Evento:</label>
     <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
@@ -105,11 +105,11 @@ if ($result) {
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
     <?php if ($editar): ?>
-        <a href="eventos.php">Cancelar</a>
+        <a href="tipo.php">Cancelar</a>
     <?php endif; ?>
 </form>
 
-<h2>Lista dos Eventos nas Igrejas Cristãs:</h2>
+<h2>Lista dos Tipos de Membros nas Igrejas Cristãs:</h2>
 
 <table>
     <tr>
@@ -117,13 +117,13 @@ if ($result) {
         <th>Ações</th>
     </tr>
 
-    <?php foreach ($eventos as $p): ?>
+    <?php foreach ($tipo as $p): ?>
         <tr>
             <td><?= htmlspecialchars($p['descricao']) ?></td>
             <td>
-                <a href="eventos.php?edit=<?= $p['id_evento'] ?>">Editar</a>
-                <a href="eventos.php?delete=<?= $p['id_evento'] ?>"
-                   onclick="return confirm('Deseja excluir este Evento ?')">
+                <a href="tipo.php?edit=<?= $p['id_tipo'] ?>">Editar</a>
+                <a href="tipo.php?delete=<?= $p['id_tipo'] ?>"
+                   onclick="return confirm('Deseja excluir este Tipo de Membro ?')">
                    Excluir
                 </a>
             </td>
