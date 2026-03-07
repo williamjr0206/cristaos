@@ -6,7 +6,7 @@ require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
 
-verificaPerfil(['ADMIN','OPERADOR']);
+verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 
 /* =====================
    SALVAR / EDITAR
@@ -25,20 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cadastrante = $_POST['cadastrante'] ?? '';    
 
     if ($id) {
-        $stmt = $conn->prepare("
+        $stmt = $con->prepare("
             UPDATE visitantes
             SET nome = ?, sexo = ?, id_tipo = ?, telefone = ?, email = ?, cidade = ?, oracao = ?, data_cadastro = ?,
             cadastrante = ? 
             WHERE id_visitante = ?
         ");
-        $stmt->bind_param("ssisssi", $nome, $sexo, $tipomembro, $telefone,$email, $cidade, $oracao, $data, $cadastrante, $id);
+        $stmt->bindParam("ssisssi", $nome, $sexo, $tipomembro, $telefone,$email, $cidade, $oracao, $data, $cadastrante, $id);
         } else {
-        $stmt = $conn->prepare("
+        $stmt = $con->prepare("
             INSERT INTO visitantes (nome, sexo, id_tipo, telefone, email, cidade, oracao, 
             data_cadastro, cadastrante)
             VALUES (?, ?, ?, ?, ? , ?, ?, ?, ?)
         ");
-        $stmt->bind_param("ssissss", $nome, $sexo, $tipomembro, $telefone, $email, $cidade, $oracao, $data,
+        $stmt->bindParam("ssissss", $nome, $sexo, $tipomembro, $telefone, $email, $cidade, $oracao, $data,
         $cadastrante);
     }
 
@@ -54,8 +54,8 @@ if (isset($_GET['delete'])) {
 
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM visitantes WHERE id_visitante = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $stmt = $con->prepare("DELETE FROM visitantes WHERE id_visitante = ?");
+    $stmt->bindParam("i", $_GET['delete']);
     $stmt->execute();
 
     header("Location: visitantes.php");
@@ -68,7 +68,7 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM visitantes WHERE id_visitante = ?");
+    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = ?");
     $stmt->bind_param("i", $_GET['edit']);
     $stmt->execute();
     $editar = $stmt->get_result()->fetch_assoc();
@@ -77,11 +77,11 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$igrejas = [];
+$visitantes = [];
 
-$result = $conn->query("SELECT * FROM visitantes ORDER BY nome");
+$result = $con->query("SELECT * FROM visitantes ORDER BY nome");
 if ($result) {
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $result->fetchAll()) {
         $visitantes[] = $row;
     }
 }
@@ -96,6 +96,7 @@ if ($result) {
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
         input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 5px; }
         th { background: #eee; }
@@ -116,8 +117,8 @@ if ($result) {
     <select name="sexo" required>
         <?php foreach (['Masculino','Feminino'] as $s): ?>
             <option value="<?= $p ?>"
-                <?= ($editar && $editar['sexo'] === $p) ? 'selected' : '' ?>>
-                <?= $p ?>
+                <?= ($editar && $editar['sexo'] === $s) ? 'selected' : '' ?>>
+                <?= $s ?>
             </option>
         <?php endforeach; ?>
     </select>

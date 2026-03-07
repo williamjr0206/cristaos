@@ -14,8 +14,8 @@ verificaPerfil(['ADMIN']);
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id     = $_POST['id_usuario'] ?? null;
-    $nome   = $_POST['nome_usuario'];
+    $id     = $_POST['id'] ?? null;
+    $nome   = $_POST['nome'];
     $email  = $_POST['email'];
     $perfil = $_POST['perfil'];
     $ativo  = isset($_POST['ativo']) ? 1 : 0;
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("
                 UPDATE usuarios
                 SET nome_usuario = ?, email = ?, perfil = ?, senha = ?, ativo = ?
-                WHERE id = ?
+                WHERE id_usuario = ?
             ");
             $stmt->bind_param(
                 "ssssii",
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("
                 UPDATE usuarios
                 SET nome_usuario = ?, email = ?, perfil = ?, ativo = ?
-                WHERE id = ?
+                WHERE id_usuario = ?
             ");
             $stmt->bind_param(
                 "sssii",
@@ -60,20 +60,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("
             INSERT INTO usuarios
             (nome_usuario, email, senha, perfil, ativo)
-            VALUES (?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, ?)
         ");
         $stmt->bind_param(
-            "ssss",
+            "ssssi",
             $nome,
             $email,
-            password_hash($_POST['senha'], PASSWORD_DEFAULT),
+            $senha,
             $perfil,
             $ativo
         );
     }
 
     $stmt->execute();
-    header("Location: " . BASE_URL . "login.php");
+    header("Location: usuarios.php");
     exit;
 }
 
@@ -81,12 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    2) EXCLUIR
 ===================== */
 if (isset($_GET['delete'])) {
-    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = ?");
+    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id_usuario = ?");
     $stmt->bind_param("i", $_GET['delete']);
     $stmt->execute();
 
-header("Location: " . BASE_URL . "usuarios.php");
-exit;}
+    header("Location: usuarios.php");
+    exit;
+}
 
 /* =====================
    3) CARREGAR EDIÇÃO
@@ -134,10 +135,10 @@ while ($row = $result->fetch_assoc()) {
 <h2><?= $editar ? 'Editar Usuário' : 'Novo Usuário' ?></h2>
 
 <form method="post">
-    <input type="hidden" name="id_usuario" value="<?= $editar['id_usuario'] ?? '' ?>">
+    <input type="hidden" name="id" value="<?= $editar['id_usuario'] ?? '' ?>">
 
     <label>Nome</label>
-    <input name="nome_usuario" required value="<?= $editar['nome_usuario'] ?? '' ?>">
+    <input name="nome" required value="<?= $editar['nome_usuario'] ?? '' ?>">
 
     <label>Email</label>
     <input type="email" name="email" required value="<?= $editar['email'] ?? '' ?>">
@@ -147,7 +148,7 @@ while ($row = $result->fetch_assoc()) {
 
     <label>Perfil</label>
     <select name="perfil" required>
-        <?php foreach (['ADMIN','OPERADOR','CONSULTA'] as $p): ?>
+        <?php foreach (['ADMIN','OPERADOR','CONSULTA','LIDER'] as $p): ?>
             <option value="<?= $p ?>"
                 <?= ($editar && $editar['perfil'] === $p) ? 'selected' : '' ?>>
                 <?= $p ?>
@@ -157,7 +158,8 @@ while ($row = $result->fetch_assoc()) {
 
     <label>
         <input type="checkbox" name="ativo"
-            <?= (!isset($editar) || ($editar['ativo'] ?? 1)) ? 'checked' : '' ?>> Ativo
+            <?= (!isset($editar) || ($editar['ativo'] ?? 1)) ? 'checked' : '' ?>>
+        Ativo
     </label>
 
     <button type="submit">
@@ -190,7 +192,7 @@ while ($row = $result->fetch_assoc()) {
                 <a href="usuarios.php?edit=<?= $u['id_usuario'] ?>">Editar</a>
 
                 <a href="usuarios.php?delete=<?= $u['id_usuario'] ?>"
-                   onclick="return confirm('Deseja excluir este usuário?')">
+                   onclick="return confirm('Deseja excluir este usuário ?')">
                    Excluir
                 </a>
             </td>
