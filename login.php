@@ -8,17 +8,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $senha = $_POST['senha'] ?? '';
 
-    $stmt = $conn->prepare(
+    $stmt = $con->prepare(
         "SELECT id_usuario, nome_usuario, perfil, senha
          FROM usuarios
-         WHERE email = ? AND ativo = 1"
+         WHERE email = :email AND ativo = 1
+         limit 1"
     );
 
-    $stmt->bind_param("s", $email);
+    $stmt->bindParam(':email', $email);
     $stmt->execute();
 
-    $resultado = $stmt->get_result();
-    $user = $resultado->fetch_assoc();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($senha, $user['senha'])) {
         $_SESSION['usuario_id'] = $user['id_usuario'];

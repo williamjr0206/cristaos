@@ -4,16 +4,19 @@ require __DIR__ . '/config/database.php';
 $senha = '123456';
 $hash = password_hash($senha, PASSWORD_DEFAULT);
 
-$stmt = $conn->prepare(
+$stmt = $con->prepare(
     "INSERT INTO usuarios (nome_usuario, email, senha, perfil, ativo)
-     VALUES (?, ?, ?, ?, 1)"
+     VALUES (:nome_usuario, :email, :senha, :perfil, 1)"
 );
 
 $nome   = 'Administrador';
-$email  = 'admin@teste.com';
+$email  = 'william@teste.com';
 $perfil = 'ADMIN';
 
-$stmt->bind_param("ssss", $nome, $email, $hash, $perfil);
+$stmt->bindParam(':nome_usuario', $nome);
+$stmt->bindParam(':email', $email);
+$stmt->bindParam(':senha', $hash);
+$stmt->bindParam(':perfil', $perfil);
 
 if ($stmt->execute()) {
     echo "Usuário criado com sucesso!<br>";
