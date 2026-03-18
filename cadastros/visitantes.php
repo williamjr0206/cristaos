@@ -25,21 +25,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cadastrante = $_POST['cadastrante'] ?? '';    
 
     if ($id) {
-        $stmt = $con->prepare("
-            UPDATE visitantes
-            SET nome = ?, sexo = ?, id_tipo = ?, telefone = ?, email = ?, cidade = ?, oracao = ?, data_cadastro = ?,
-            cadastrante = ? 
-            WHERE id_visitante = ?
-        ");
-        $stmt->bindParam("ssisssi", $nome, $sexo, $tipomembro, $telefone,$email, $cidade, $oracao, $data, $cadastrante, $id);
+        $sql = "UPDATE visitantes SET nome = :nome
+        , sexo = :sexo, id_tipo = :id_tipo, telefone = :telefone, email = :email, cidade = :cidade,
+         oracao =:oracao, data_cadastro = :data_cadastro, cadastrante = :cadastrante 
+         WHERE id_visitante = :id_visitante";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id_visitante', $id);
         } else {
-        $stmt = $con->prepare("
-            INSERT INTO visitantes (nome, sexo, id_tipo, telefone, email, cidade, oracao, 
-            data_cadastro, cadastrante)
-            VALUES (?, ?, ?, ?, ? , ?, ?, ?, ?)
-        ");
-        $stmt->bindParam("ssissss", $nome, $sexo, $tipomembro, $telefone, $email, $cidade, $oracao, $data,
-        $cadastrante);
+
+        $sql = "INSERT INTO visitantes (nome, sexo, id_tipo, telefone, email,
+         cidade, oracao, data_cadastro, cadastrante)
+         VALUES (:nome, :sexo, :id_tipo,
+          :telefone, :email , :cidade, :oracao,
+          :data_cadastro, :cadastrante)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':nome', $nome);
+        $stmt -> bindParam(':sexo', $sexo);
+        $stmt -> bindParam(':id_tipo', $tipomembro);
+        $stmt -> bindParam(':telefone', $telefone);
+        $stmt -> bindParam(':email', $email);
+        $stmt -> bindParam(':cidade', $cidade);
+        $stmt -> bindParam(':oracao', $oracao);
+        $stmt -> bindParam(':data_cadastro', $data);
+        $stmt -> bindParam(':cadastrante', $cadastrante);
+
+
     }
 
     $stmt->execute();
@@ -52,10 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
-    verificaPerfil(['ADMIN']);
+    $id = $_GET['delete'];
+    verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 
-    $stmt = $con->prepare("DELETE FROM visitantes WHERE id_visitante = ?");
-    $stmt->bindParam("i", $_GET['delete']);
+    $sql = "DELETE FROM visitantes WHERE id_visitante = :id_visitante";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id_visitante',$id);
     $stmt->execute();
 
     header("Location: visitantes.php");
@@ -68,23 +83,19 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = :id_visitante");
+    $stmt->bindparam(':id_visitante', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$visitantes = [];
+$stmt = $con -> query("SELECT * FROM visitantes order by nome");
+$visitantes = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $con->query("SELECT * FROM visitantes ORDER BY nome");
-if ($result) {
-    while ($row = $result->fetchAll()) {
-        $visitantes[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -183,17 +194,17 @@ if ($result) {
         <th>Pedido de Oraçao</th>
     </tr>
 
-    <?php foreach ($visitantes as $p): ?>
+    <?php foreach ($visitantes as $v): ?>
         <tr>
-            <td><?= htmlspecialchars($p['nome']) ?></td>
-            <td><?= htmlspecialchars($p['sexo']) ?></td>
-            <td><?= htmlspecialchars($p['id_tipo']) ?></td>
-            <td><?= htmlspecialchars($p['telefone']) ?></td>
-            <td><?= htmlspecialchars($p['cidade']) ?></td>
-            <td><?= htmlspecialchars($p['oracao']) ?></td>
+            <td><?= htmlspecialchars($v['nome']) ?></td>
+            <td><?= htmlspecialchars($v['sexo']) ?></td>
+            <td><?= htmlspecialchars($v['id_tipo']) ?></td>
+            <td><?= htmlspecialchars($v['telefone']) ?></td>
+            <td><?= htmlspecialchars($v['cidade']) ?></td>
+            <td><?= htmlspecialchars($v['oracao']) ?></td>
         <td>
-                <a href="visitantes.php?edit=<?= $p['id_visitante'] ?>">Editar</a>
-                <a href="visitante.php?delete=<?= $p['id_visitante'] ?>"
+                <a href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
+                <a href="visitante.php?delete=<?= $v['id_visitante'] ?>"
                    onclick="return confirm('Deseja excluir esta Visitante ?')">
                    Excluir
                 </a>

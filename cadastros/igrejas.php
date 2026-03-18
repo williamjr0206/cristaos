@@ -6,7 +6,7 @@ require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
 
-verificaPerfil(['ADMIN','OPERADOR']);
+verificaPerfil(['ADMIN']);
 
 /* =====================
    SALVAR / EDITAR
@@ -19,28 +19,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pais        = $_POST['pais'] ?? '';
     $estado      = $_POST['estado'] ?? '';
     $municipio   = $_POST['municipio'] ?? '';
-    $endereco    = $_POST['endereco'] ?? '';    
+    $endereco    = $_POST['endereco'] ?? '';
     $cep         = $_POST['cep'] ?? '';
-    $latitude    = $_POST['latitude'] ?? '';
-    $longitude   = $_POST['longitude'] ?? '';
+    $latitude    = $data['latitude'] ?? '';
+    $longitude   = $_POST['longitude'] ?? '';    
 
     if ($id) {
-        $stmt = $conn->prepare("
-            UPDATE igrejas
-            SET nome = ?, denominacao = ?, pais = ?, estado = ?, municipio = ?,
-            endereco = ?, cep = ?, latitude = ?, longitude = ? 
-            WHERE id_igreja = ?
-        ");
-        $stmt->bind_param("ssssssissi", $nome, $denominacao, $pais, $estado,$municipio,$endereco,$cep,
-        $latitude,$longitude, $id);
-    } else {
-        $stmt = $conn->prepare("
-            INSERT INTO igrejas (nome, denominacao, pais, estado, municipio, 
-            endereco, cep, latitude, longitude)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->bind_param("ssssssiss", $nome, $denominacao, $pais, $estado, $municipio, $endereco,
-        $cep, $latitude, $longitude);
+        $sql = "UPDATE igrejas SET nome = :nome
+        , denominacao = :denominacao, pais = :pais, estado = :estado, municipio = :municipio, endereco = :endereco,
+         cep =:cep, latitude = :latitude, longitude = :longitude 
+         WHERE id_igreja = :id";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id_igreja', $id);
+        } else {
+
+        $sql = "INSERT INTO visitantes (nome, denominacao, pais, estado, municipio,
+         endereco, cep, latitude, longitude)
+         VALUES (:nome, :denominacao, :pais,
+          :estado, :municipio , :endereco, :cep,
+          :latitude, :longitude)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':nome', $nome);
+        $stmt -> bindParam(':denominacao', $denominacao);
+        $stmt -> bindParam(':pais', $pais);
+        $stmt -> bindParam(':estado', $estado);
+        $stmt -> bindParam(':municipio', $municipio);
+        $stmt -> bindParam(':endereco', $endereco);
+        $stmt -> bindParam(':cep', $cep);
+        $stmt -> bindParam(':latitude', $latitude);
+        $stmt -> bindParam(':longitude', $longitude);
+
+
     }
 
     $stmt->execute();
@@ -53,10 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
+    $id = $_GET['delete'];
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM igrejas WHERE id_igreja = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $sql = "DELETE FROM igrejas WHERE id_igreja = :id";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id_igreja',$id);
     $stmt->execute();
 
     header("Location: igrejas.php");
@@ -69,23 +83,19 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM igrejas WHERE id_igreja = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM igrejas WHERE id_igreja = :id");
+    $stmt->bindparam(':id_igreja', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$igrejas = [];
+$stmt = $con -> query("SELECT * FROM igrejas order by nome");
+$igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $conn->query("SELECT * FROM igrejas ORDER BY nome");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $igrejas[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -97,6 +107,7 @@ if ($result) {
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
         input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 5px; }
         th { background: #eee; }
@@ -113,30 +124,29 @@ if ($result) {
     <label>Nome</label>
     <input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
 
-    <label>Denominação:</label>
-    <input name="denominacao" value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">
+    <label>Denominação</label>
+    <input name="denominacao" require value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">; 
 
-    <label>Pais:</label>
-    <input name="pais" value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">
+    <label>País</label>
+    <input name="pais" require value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">;
 
-    <label>Estado:</label>
-    <input  name="estado" value="<?= htmlspecialchars($editar['estado'] ?? '') ?>">
+    <label>Estado</label>
+    <input name="estado" required value="<?= htmlspecialchars($editar['estado'] ?? '') ?>">
 
-    <label>Município:</label>
-    <input  name="municipio" value="<?= htmlspecialchars($editar['municipio'] ?? '') ?>">
+    <label>Município</label>
+    <input  name="municipio" required value="<?= htmlspecialchars($editar['municipio'] ?? '') ?>">
 
-    <label>Endereço:</label>
-    <input  name="endereco" value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
+    <label>Endereço</label>
+    <input  name="endereco" required value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
 
+    <label>Cep</label>
+    <input name="cep" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
 
-    <label>Cep:</label>
-    <input name = "cep" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
-
-    <label>Latitude:</label>
-    <input  name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">
-
-    <label>Longitude:</label>
-    <input  name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">
+	<label>Latitude</label>
+    <input name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">;
+    
+    <label>Longitude</label>
+    <input name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">;     
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
@@ -145,32 +155,23 @@ if ($result) {
     <?php endif; ?>
 </form>
 
-<h2>Lista de Igrejas Cristãs Cadastradas</h2>
+<h2>Lista de Igreja Evangélicas</h2>
 
 <table>
     <tr>
         <th>Nome</th>
-        <th>Pais</th>
-        <th>Cidade</th>
-        <th>Cep</th>
+        <th>Denominação</th>
         <th>Endereço</th>
-        <th>Lat.</th>
-        </tr>Long.</th>
-        <th>Ações</th>
     </tr>
 
-    <?php foreach ($igrejas as $p): ?>
+    <?php foreach ($igrejas as $i): ?>
         <tr>
-            <td><?= htmlspecialchars($p['nome']) ?></td>
-            <td><?= htmlspecialchars($p['pais']) ?></td>
-            <td><?= htmlspecialchars($p['municipio']) ?></td>
-            <td><?= htmlspecialchars($p['cep']) ?></td>
-            <td><?= htmlspecialchars($p['endereco']) ?></td>
-            <td><?= htmlspecialchars($p['latitude']) ?></td>
-            <td><?= htmlspecialchars($p['longitude']) ?></td>
-            <td>
-                <a href="igrejas.php?edit=<?= $p['id_igreja'] ?>">Editar</a>
-                <a href="igrejas.php?delete=<?= $p['id_igreja'] ?>"
+            <td><?= htmlspecialchars($i['nome']) ?></td>
+            <td><?= htmlspecialchars($i['denominacao']) ?></td>
+            <td><?= htmlspecialchars($i['endereco']) ?></td>
+        <td>
+                <a href="igrejas.php?edit=<?= $i['id_igreja'] ?>">Editar</a>
+                <a href="visitante.php?delete=<?= $i['id_igreja'] ?>"
                    onclick="return confirm('Deseja excluir esta Igreja ?')">
                    Excluir
                 </a>

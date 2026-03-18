@@ -6,29 +6,31 @@ require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
 
-verificaPerfil(['ADMIN','OPERADOR']);
+verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 
 /* =====================
    SALVAR / EDITAR
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id        = $_POST['id'] ?? null;
-    $descricao = $_POST['descricao'] ?? '';
+    $id          = $_POST['id'] ?? null;
+    $descricao   = $_POST['descricao'] ?? '';
 
     if ($id) {
-        $stmt = $conn->prepare("
-            UPDATE eventos
-            SET descricao = ? 
-            WHERE id_evento = ?
-        ");
-        $stmt->bind_param("si", $descricao, $id);
-    } else {
-        $stmt = $conn->prepare("
-            INSERT INTO eventos (descricao)
-            VALUES (?)
-        ");
-        $stmt->bind_param("s", $descricao);
+        $sql = "UPDATE eventos SET descricao = :descricao
+         WHERE id_evento = :id";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id', $id);
+        } else {
+
+        $sql = "INSERT INTO eventos (descricao)
+         VALUES (:descricao)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':descricao', $descricao);
+
     }
 
     $stmt->execute();
@@ -41,10 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
+    $id = $_GET['delete'];
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM eventos WHERE id_evento = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $sql = "DELETE FROM eventos WHERE id_evento = :id";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id',$id);
     $stmt->execute();
 
     header("Location: eventos.php");
@@ -57,34 +61,31 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM eventos WHERE id_evento = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM eventos WHERE id_evento = :id");
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$eventos = [];
+$stmt = $con -> query("SELECT * FROM eventos order by descricao");
+$eventos = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $conn->query("SELECT * FROM eventos ORDER BY descricao");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $eventos[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Eventos</title>
+    <title>Igrejas Evangélicas</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
         input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 5px; }
         th { background: #eee; }
@@ -98,7 +99,7 @@ if ($result) {
 <form method="post">
     <input type="hidden" name="id" value="<?= $editar['id_evento'] ?? '' ?>">
 
-    <label>Descrição do Evento:</label>
+    <label>Descrição do Cargo</label>
     <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
 
 
@@ -109,20 +110,19 @@ if ($result) {
     <?php endif; ?>
 </form>
 
-<h2>Lista dos Eventos nas Igrejas Cristãs:</h2>
+<h2>Lista de Eventos na Igreja</h2>
 
 <table>
     <tr>
-        <th>Nome do Evento:</th>
-        <th>Ações</th>
+        <th>Descrição:</th>
     </tr>
 
-    <?php foreach ($eventos as $p): ?>
+    <?php foreach ($eventos as $e): ?>
         <tr>
-            <td><?= htmlspecialchars($p['descricao']) ?></td>
-            <td>
-                <a href="eventos.php?edit=<?= $p['id_evento'] ?>">Editar</a>
-                <a href="eventos.php?delete=<?= $p['id_evento'] ?>"
+            <td><?= htmlspecialchars($e['descricao']) ?></td>
+        <td>
+                <a href="eventos.php?edit=<?= $e['id_evento'] ?>">Editar</a>
+                <a href="eventos.php?delete=<?= $e['id_evento'] ?>"
                    onclick="return confirm('Deseja excluir este Evento ?')">
                    Excluir
                 </a>

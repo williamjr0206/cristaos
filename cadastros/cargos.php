@@ -6,7 +6,7 @@ require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
 
-verificaPerfil(['ADMIN','OPERADOR']);
+verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 
 /* =====================
    SALVAR / EDITAR
@@ -17,18 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descricao   = $_POST['descricao'] ?? '';
 
     if ($id) {
-        $stmt = $conn->prepare("
-            UPDATE cargos
-            SET descricao = ? 
-            WHERE id_cargo = ?
-        ");
-        $stmt->bind_param("si", $descricao, $id);
-    } else {
-        $stmt = $conn->prepare("
-            INSERT INTO cargos (descricao)
-            VALUES (?)
-        ");
-        $stmt->bind_param("s", $descricao);
+        $sql = "UPDATE cargos SET descricao = :descricao
+         WHERE id_cargo = :id";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id', $id);
+        } else {
+
+        $sql = "INSERT INTO cargos (descricao)
+         VALUES (:descricao)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':descricao', $descricao);
+
     }
 
     $stmt->execute();
@@ -41,10 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
+    $id = $_GET['delete'];
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM cargos WHERE id_cargo = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $sql = "DELETE FROM cargos WHERE id_cargo = :id";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id',$id);
     $stmt->execute();
 
     header("Location: cargos.php");
@@ -57,34 +61,31 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM cargos WHERE id_cargo = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM cargos WHERE id_cargo = :id");
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$cargos = [];
+$stmt = $con -> query("SELECT * FROM cargos order by descricao");
+$cargo = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $conn->query("SELECT * FROM cargos ORDER BY descricao");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $cargos[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Igrejas</title>
+    <title>Igrejas Evangélicas</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
         input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: 5px; }
         th { background: #eee; }
@@ -98,7 +99,7 @@ if ($result) {
 <form method="post">
     <input type="hidden" name="id" value="<?= $editar['id_cargo'] ?? '' ?>">
 
-    <label>Descrição do Cargo:</label>
+    <label>Descrição do Cargo</label>
     <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
 
 
@@ -109,21 +110,20 @@ if ($result) {
     <?php endif; ?>
 </form>
 
-<h2>Lista de Cargos Ocupado Pelos Membros das Igrejas Cristãs:</h2>
+<h2>Lista de Cargos na Igreja</h2>
 
 <table>
     <tr>
-        <th>Descrição do Cargo:</th>
-        <th>Ações</th>
+        <th>Descrição:</th>
     </tr>
 
-    <?php foreach ($cargos as $p): ?>
+    <?php foreach ($cargo as $c): ?>
         <tr>
-            <td><?= htmlspecialchars($p['descricao']) ?></td>
-            <td>
-                <a href="cargos.php?edit=<?= $p['id_cargo'] ?>">Editar</a>
-                <a href="cargos.php?delete=<?= $p['id_cargo'] ?>"
-                   onclick="return confirm('Deseja excluir este cargor ?')">
+            <td><?= htmlspecialchars($c['descricao']) ?></td>
+        <td>
+                <a href="cargos.php?edit=<?= $c['id_cargo'] ?>">Editar</a>
+                <a href="cargos.php?delete=<?= $c['id_cargo'] ?>"
+                   onclick="return confirm('Deseja excluir este Cargo ?')">
                    Excluir
                 </a>
             </td>
