@@ -77,38 +77,6 @@ $professores = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Professores</title>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        form { margin-bottom: 30px; }
-        input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 5px; }
-        th { background: #eee; }
-        a { margin-right: 10px; }
-    </style>
-</head>
-<body>
-
-<h2><?= $editar ? 'Editar Professor' : 'Novo Professor' ?></h2>
-
-<form method="post">
-    <input type="hidden" name="id" value="<?= $editar['id_professor'] ?? '' ?>">
-
-    <label>Nome do Professor(a):</label>
-    <input name="nome_do_professor" required value="<?= htmlspecialchars($editar['nome_do_professor'] ?? '') ?>">
-
-
-    <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
-
-    <?php if ($editar): ?>
-        <a href="professore.php">Cancelar</a>
-    <?php endif; ?>
-</form>
 
 <h2>Lista dos Professores(as) nas Igrejas Evangélicas:</h2>
 
