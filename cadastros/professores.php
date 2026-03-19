@@ -13,22 +13,25 @@ verificaPerfil(['ADMIN','OPERADOR']);
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id            = $_POST['id'] ?? null;
-    $nome_do_professor = $_POST['nome_do_professor'] ?? '';
+    $id          = $_POST['id'] ?? null;
+    $professor   = $_POST['professor'] ?? '';
 
     if ($id) {
-        $stmt = $conn->prepare("
-            UPDATE professores
-            SET nome_do_professor = ? 
-            WHERE id_professor = ?
-        ");
-        $stmt->bind_param("si", $nome_do_professor, $id);
-    } else {
-        $stmt = $conn->prepare("
-            INSERT INTO professores (nome_do_professor)
-            VALUES (?)
-        ");
-        $stmt->bind_param("s", $nome_do_professor);
+        $sql = "UPDATE professores SET nome_do_professor = :professor
+         WHERE id_professor = :id";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id', $id);
+        $stmt->bindParam(':professor',$professor);
+        } else {
+
+        $sql = "INSERT INTO cargos (nome_do_professor)
+         VALUES (:professor)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':professor', $professor);
+
     }
 
     $stmt->execute();
@@ -41,10 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
+    $id = $_GET['delete'];
     verificaPerfil(['ADMIN']);
 
-    $stmt = $conn->prepare("DELETE FROM professores WHERE id_professor = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $sql = "DELETE FROM professores WHERE id_professor = :id";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id',$id);
     $stmt->execute();
 
     header("Location: professores.php");
@@ -57,23 +62,19 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM professores WHERE id_professor = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM professores WHERE id_professor = :id");
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$professores = [];
+$stmt = $con -> query("SELECT * FROM professores order by nome_do_professor");
+$professores = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $conn->query("SELECT * FROM professores ORDER BY nome_do_professor");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $professores[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -109,7 +110,7 @@ if ($result) {
     <?php endif; ?>
 </form>
 
-<h2>Lista dos Professores(as) nas Igrejas Cristãs:</h2>
+<h2>Lista dos Professores(as) nas Igrejas Evangélicas:</h2>
 
 <table>
     <tr>

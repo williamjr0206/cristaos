@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = $con->prepare($sql);
         $stmt->bindParam('id', $id);
+        $stmt->bindParam(':descricao',$descricao);
         } else {
 
         $sql = "INSERT INTO cargos (descricao)

@@ -27,49 +27,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id) {
         if ($senha) {
-            $stmt = $conn->prepare("
+            $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = ?, email = ?, perfil = ?, senha = ?, ativo = ?
+                SET nome_usuario = :nome, email = :email, perfil = :perfil, senha = :senha, ativo = :ativo
                 WHERE id_usuario = ?
             ");
-            $stmt->bind_param(
-                "ssssii",
-                $nome,
-                $email,
-                $perfil,
-                $senha,
-                $ativo,
-                $id
-            );
+            $stmt->bindParam(':nome', $nome);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':perfil', $perfil);
+            $stmt->bindParam(':senha', $senha);
+            $stmt->bindParam(':ativo', $ativo);
         } else {
-            $stmt = $conn->prepare("
+            $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = ?, email = ?, perfil = ?, ativo = ?
-                WHERE id_usuario = ?
+                SET nome_usuario = :nome, email = :email, perfil = :perfil, ativo = :ativo
+                WHERE id_usuario = :id
             ");
-            $stmt->bind_param(
-                "sssii",
-                $nome,
-                $email,
-                $perfil,
-                $ativo,
-                $id
-            );
-        }
+            $stmt->bindParam(':nome', $nome);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':perfil', $perfil);
+            $stmt->bindParam(':senha', $senha);
+            $stmt->bindParam(':ativo', $ativo);
+            $stmt->bindParam(':id', $id);        }
     } else {
         $stmt = $conn->prepare("
             INSERT INTO usuarios
-            (nome_usuario, email, senha, perfil, ativo)
-            VALUES (?, ?, ?, ?, ?)
+            (nome_do_usuario, email, senha, perfil, ativo)
+            VALUES (:nome, :email, :senha, :perfil, :ativo)
         ");
-        $stmt->bind_param(
-            "ssssi",
-            $nome,
-            $email,
-            $senha,
-            $perfil,
-            $ativo
-        );
+            $stmt->bindParam(':nome', $nome);
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':perfil', $perfil);
+            $stmt->bindParam(':senha', $senha);
+            $stmt->bindParam(':ativo', 1);
+        
     }
 
     $stmt->execute();
@@ -81,8 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    2) EXCLUIR
 ===================== */
 if (isset($_GET['delete'])) {
-    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id_usuario = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    verificaPerfil(['ADMIN']);
+
+    $stmt = $con->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
+    $stmt->bindParam(':id',$id);
     $stmt->execute();
 
     header("Location: usuarios.php");
@@ -93,26 +86,21 @@ if (isset($_GET['delete'])) {
    3) CARREGAR EDIÇÃO
 ===================== */
 $editar = null;
+
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM usuarios WHERE id_usuario = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM usuarios WHERE id_usuario = :id");
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    4) LISTAR USUÁRIOS
 ===================== */
-$usuarios = [];
-$result = $conn->query("
-    SELECT id_usuario, nome_usuario, email, perfil, ativo
-    FROM usuarios
-    ORDER BY nome_usuario
-");
+$stmt = $con -> query("SELECT * FROM usuarios order by nome");
+$usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-while ($row = $result->fetch_assoc()) {
-    $usuarios[] = $row;
-}
 ?>
 
 <!DOCTYPE html>
@@ -148,10 +136,10 @@ while ($row = $result->fetch_assoc()) {
 
     <label>Perfil</label>
     <select name="perfil" required>
-        <?php foreach (['ADMIN','OPERADOR','CONSULTA','LIDER'] as $p): ?>
+        <?php foreach ( ['ADMIN','OPERADOR','LIDER','CONSULTA'] as $u): ?>
             <option value="<?= $p ?>"
-                <?= ($editar && $editar['perfil'] === $p) ? 'selected' : '' ?>>
-                <?= $p ?>
+                <?= ($editar && $editar['perfil'] === $u) ? 'selected' : '' ?>>
+                <?= $u ?>
             </option>
         <?php endforeach; ?>
     </select>
