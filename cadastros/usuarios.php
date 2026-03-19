@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome   = $_POST['nome'];
     $email  = $_POST['email'];
     $perfil = $_POST['perfil'];
-    $ativo  = isset($_POST['ativo']) ? 1 : 0;
+//    $ativo  = isset($_POST['ativo']) ? 1 : 0;
 
     // senha só é atualizada se for informada
     $senha = !empty($_POST['senha'])
@@ -29,38 +29,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($senha) {
             $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = :nome, email = :email, perfil = :perfil, senha = :senha, ativo = :ativo
+                SET nome_usuario = :nome, email = :email, perfil = :perfil, senha = :senha
                 WHERE id_usuario = ?
             ");
             $stmt->bindParam(':nome', $nome);
             $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':perfil', $perfil);
             $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':ativo', $ativo);
+            $stmt->bindParam(':perfil', $perfil);
+  //        $stmt->bindParam(':ativo', $ativo);
+            $stmt->bindParam(':id', $id);
         } else {
             $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = :nome, email = :email, perfil = :perfil, ativo = :ativo
+                SET nome_usuario = :nome, email = :email, senha = :senha, perfil = :perfil
                 WHERE id_usuario = :id
             ");
             $stmt->bindParam(':nome', $nome);
             $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':perfil', $perfil);
             $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':ativo', $ativo);
+            $stmt->bindParam(':perfil', $perfil);
+ //         $stmt->bindParam(':ativo', $ativo);
             $stmt->bindParam(':id', $id);        }
     } else {
-        $stmt = $conn->prepare("
+        $stmt = $con->prepare("
             INSERT INTO usuarios
-            (nome_do_usuario, email, senha, perfil, ativo)
-            VALUES (:nome, :email, :senha, :perfil, :ativo)
+            (nome_usuario, email, senha, perfil)
+            VALUES (:nome, :email, :senha, :perfil)
         ");
             $stmt->bindParam(':nome', $nome);
             $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':perfil', $perfil);
             $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':ativo', 1);
-        
+            $stmt->bindParam(':perfil', $perfil);
+ //         $stmt->bindParam(':ativo', $ativo);
+            $stmt->execute();
     }
 
     $stmt->execute();
@@ -72,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    2) EXCLUIR
 ===================== */
 if (isset($_GET['delete'])) {
-    verificaPerfil(['ADMIN']);
 
     $stmt = $con->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
     $stmt->bindParam(':id',$id);
@@ -98,7 +98,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    4) LISTAR USUÁRIOS
 ===================== */
-$stmt = $con -> query("SELECT * FROM usuarios order by nome");
+$stmt = $con -> query("SELECT * FROM usuarios order by nome_usuario");
 $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>
@@ -116,6 +116,7 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         th, td { border: 1px solid #ccc; padding: 8px; }
         th { background: #eee; }
         a { margin-right: 10px; }
+
     </style>
 </head>
 <body>
@@ -137,19 +138,14 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
     <label>Perfil</label>
     <select name="perfil" required>
         <?php foreach ( ['ADMIN','OPERADOR','LIDER','CONSULTA'] as $u): ?>
-            <option value="<?= $p ?>"
+            <option value="<?= $u ?>"
                 <?= ($editar && $editar['perfil'] === $u) ? 'selected' : '' ?>>
                 <?= $u ?>
             </option>
         <?php endforeach; ?>
     </select>
 
-    <label>
-        <input type="checkbox" name="ativo"
-            <?= (!isset($editar) || ($editar['ativo'] ?? 1)) ? 'checked' : '' ?>>
-        Ativo
-    </label>
-
+    <br><br>
     <button type="submit">
         <?= $editar ? 'Atualizar' : 'Salvar' ?>
     </button>
@@ -166,7 +162,6 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         <th>Nome</th>
         <th>Email</th>
         <th>Perfil</th>
-        <th>Status</th>
         <th>Ações</th>
     </tr>
 
@@ -175,7 +170,6 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($u['nome_usuario']) ?></td>
             <td><?= htmlspecialchars($u['email']) ?></td>
             <td><?= $u['perfil'] ?></td>
-            <td><?= $u['ativo'] ? 'Ativo' : 'Inativo' ?></td>
             <td>
                 <a href="usuarios.php?edit=<?= $u['id_usuario'] ?>">Editar</a>
 

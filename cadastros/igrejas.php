@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $municipio   = $_POST['municipio'] ?? '';
     $endereco    = $_POST['endereco'] ?? '';
     $cep         = $_POST['cep'] ?? '';
-    $latitude    = $data['latitude'] ?? '';
+    $latitude    = $_POST['latitude'] ?? '';
     $longitude   = $_POST['longitude'] ?? '';    
 
     if ($id) {
@@ -31,10 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          WHERE id_igreja = :id";
 
         $stmt = $con->prepare($sql);
-        $stmt->bindParam('id_igreja', $id);
+
+        $stmt -> bindParam(':nome', $nome);
+        $stmt -> bindParam(':denominacao', $denominacao);
+        $stmt -> bindParam(':pais', $pais);
+        $stmt -> bindParam(':estado', $estado);
+        $stmt -> bindParam(':municipio', $municipio);
+        $stmt -> bindParam(':endereco', $endereco);
+        $stmt -> bindParam(':cep', $cep);
+        $stmt -> bindParam(':latitude', $latitude);
+        $stmt -> bindParam(':longitude', $longitude);
+        $stmt->bindParam('id', $id);
         } else {
 
-        $sql = "INSERT INTO visitantes (nome, denominacao, pais, estado, municipio,
+        $sql = "INSERT INTO igrejas (nome, denominacao, pais, estado, municipio,
          endereco, cep, latitude, longitude)
          VALUES (:nome, :denominacao, :pais,
           :estado, :municipio , :endereco, :cep,
@@ -85,7 +95,7 @@ $editar = null;
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
     $stmt = $con->prepare("SELECT * FROM igrejas WHERE id_igreja = :id");
-    $stmt->bindparam(':id_igreja', $id);
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -125,10 +135,10 @@ $igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
     <input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
 
     <label>Denominação</label>
-    <input name="denominacao" require value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">; 
+    <input name="denominacao" require value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">
 
     <label>País</label>
-    <input name="pais" require value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">;
+    <input name="pais" require value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">
 
     <label>Estado</label>
     <input name="estado" required value="<?= htmlspecialchars($editar['estado'] ?? '') ?>">
@@ -143,10 +153,10 @@ $igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
     <input name="cep" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
 
 	<label>Latitude</label>
-    <input name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">;
+    <input name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">
     
     <label>Longitude</label>
-    <input name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">;     
+    <input name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">   
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 

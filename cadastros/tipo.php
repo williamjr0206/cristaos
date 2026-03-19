@@ -13,22 +13,25 @@ verificaPerfil(['ADMIN','OPERADOR']);
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id        = $_POST['id'] ?? null;
-    $descricao = $_POST['descricao'] ?? '';
+    $id          = $_POST['id'] ?? null;
+    $descricao   = $_POST['descricao'] ?? '';
 
     if ($id) {
-        $stmt = $conn->prepare("
-            UPDATE tipo
-            SET descricao = ? 
-            WHERE id_tipo = ?
-        ");
-        $stmt->bind_param("si", $descricao, $id);
-    } else {
-        $stmt = $conn->prepare("
-            INSERT INTO tipo (descricao)
-            VALUES (?)
-        ");
-        $stmt->bind_param("s", $descricao);
+        $sql = "UPDATE tipo SET descricao = :descricao
+         WHERE id_cargo = :id";
+
+        $stmt = $con->prepare($sql);
+        $stmt->bindParam('id', $id);
+        $stmt->bindParam(':descricao',$descricao);
+        } else {
+
+        $sql = "INSERT INTO tipo (descricao)
+         VALUES (:descricao)";
+
+        $stmt = $con->prepare($sql);
+
+        $stmt -> bindParam(':descricao', $descricao);
+
     }
 
     $stmt->execute();
@@ -41,10 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ===================== */
 if (isset($_GET['delete'])) {
 
-    verificaPerfil(['ADMIN']);
+    $id = $_GET['delete'];
+    verificaPerfil(['ADMIN','OPERADOR']);
 
-    $stmt = $conn->prepare("DELETE FROM tipo WHERE id_tipo = ?");
-    $stmt->bind_param("i", $_GET['delete']);
+    $sql = "DELETE FROM tipo WHERE id_tipo = :id";
+    $stmt = $con ->prepare($sql);
+    $stmt->bindParam(':id',$id);
     $stmt->execute();
 
     header("Location: tipo.php");
@@ -57,23 +62,19 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
-    $stmt = $conn->prepare("SELECT * FROM tipo WHERE id_tipo = ?");
-    $stmt->bind_param("i", $_GET['edit']);
+    $id = $_GET['edit'];
+    $stmt = $con->prepare("SELECT * FROM tipo WHERE id_tipo = :id");
+    $stmt->bindparam(':id', $id);
     $stmt->execute();
-    $editar = $stmt->get_result()->fetch_assoc();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
    LISTAR
 ===================== */
-$tipo = [];
+$stmt = $con -> query("SELECT * FROM tipo order by descricao");
+$tipo = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
-$result = $conn->query("SELECT * FROM tipo ORDER BY descricao");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $tipo[] = $row;
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -98,7 +99,7 @@ if ($result) {
 <form method="post">
     <input type="hidden" name="id" value="<?= $editar['id_tipo'] ?? '' ?>">
 
-    <label>Descrição do Evento:</label>
+    <label>Descrição do Tipo de Membro:</label>
     <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
 
 
@@ -113,7 +114,7 @@ if ($result) {
 
 <table>
     <tr>
-        <th>Nome do Evento:</th>
+        <th>Descrição do Tipo de Membro:</th>
         <th>Ações</th>
     </tr>
 
