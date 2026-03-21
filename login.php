@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $con->prepare(
         "SELECT id_usuario, nome_usuario, perfil, senha
          FROM usuarios
-         WHERE email = :email AND ativo = 1
+         WHERE email = :email
          limit 1"
     );
 

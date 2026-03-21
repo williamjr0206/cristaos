@@ -41,7 +41,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </style>
 </head>
 <body>
-<h1>Sistema da Igrejas Cristãs no Brasil</h1>
+<h1>Sistema da Igrejas Evangélicas no Brasil</h1>
 <h2>Bem-vindo, <?= htmlspecialchars($_SESSION['nome']) ?></h2>
 <p>Perfil: <strong><?= $_SESSION['perfil'] ?></strong></p>
 
@@ -54,6 +54,7 @@ if (!isset($_SESSION['usuario_id'])) {
         <a href="<?= BASE_URL ?>cadastros/eventos.php">👯‍♂️ Eventos |</a>
         <a href="<?= BASE_URL ?>cadastros/professores.php">👨‍🏫 Professores |</a>
         <a href="<?= BASE_URL ?>cadastros/tipo.php">👩‍🤝‍👩 Tipos de Membros |</a>
+        <a href="<?= BASE_URL ?>relatorios/lista_membros.php">📝 Listagem de Membros |</a>        
     <?php endif; ?>
     <?php if ($_SESSION['perfil'] === 'LIDER' or $_SESSION['perfil'] === 'ADMIN'): ?>
         <a href="<?= BASE_URL ?>cadastros/visitantes.php">👤 Visitantes |</a>
