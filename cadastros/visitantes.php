@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email       = $_POST['email'] ?? '';
     $cidade      = $_POST['cidade'] ?? '';
     $oracao      = $_POST['oracao'] ?? '';
-    $data        = $data['data'] ?? '';
+    $data        = $_POST['data'] ?? '';
     $cadastrante = $_POST['cadastrante'] ?? '';    
 
     if ($id) {
