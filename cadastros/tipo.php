@@ -14,15 +14,15 @@ verificaPerfil(['ADMIN','OPERADOR']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id          = $_POST['id'] ?? null;
-    $descricao   = $_POST['descricao'] ?? '';
+    $tipo   = $_POST['descricao'] ?? '';
 
     if ($id) {
         $sql = "UPDATE tipo SET descricao = :descricao
-         WHERE id_cargo = :id";
+         WHERE id_tipo = :id";
 
         $stmt = $con->prepare($sql);
         $stmt->bindParam('id', $id);
-        $stmt->bindParam(':descricao',$descricao);
+        $stmt->bindParam(':descricao',$tipo);
         } else {
 
         $sql = "INSERT INTO tipo (descricao)
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt = $con->prepare($sql);
 
-        $stmt -> bindParam(':descricao', $descricao);
+        $stmt -> bindParam(':descricao', $tipo);
 
     }
 
@@ -81,7 +81,7 @@ $tipo = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Eventos</title>
+    <title>Tipos de Membros</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }

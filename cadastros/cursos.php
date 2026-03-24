@@ -13,23 +13,24 @@ verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id            = $_POST['id'] ?? null;
-    $nome_do_curso = $_POST['nome_do_curso'] ?? '';
+    $id          = $_POST['id'] ?? null;
+    $nomedocurso   = $_POST['nome_do_curso'] ?? '';
 
     if ($id) {
-        $sql = "UPDATE cursos SET nome_do_curso = :nome_do_curso
+        $sql = "UPDATE cursos SET nome_do_curso = :curso
          WHERE id_curso = :id";
 
         $stmt = $con->prepare($sql);
         $stmt->bindParam('id', $id);
+        $stmt->bindParam(':curso',$nomedocurso);
         } else {
 
         $sql = "INSERT INTO cursos (nome_do_curso)
-         VALUES (:nome_do_curso)";
+         VALUES (:curso)";
 
         $stmt = $con->prepare($sql);
 
-        $stmt -> bindParam(':nome_do_curso', $nome_do_curso);
+        $stmt -> bindParam(':curso', $nomedocurso);
 
     }
 
@@ -81,7 +82,7 @@ $cursos = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Igrejas Evangélicas</title>
+    <title>Cursos</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
@@ -100,7 +101,7 @@ $cursos = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 <form method="post">
     <input type="hidden" name="id" value="<?= $editar['id_curso'] ?? '' ?>">
 
-    <label>Descrição do Cargo</label>
+    <label>Descrição do Curso</label>
     <input name="nome_do_curso" required value="<?= htmlspecialchars($editar['nome_do_curso'] ?? '') ?>">
 
 

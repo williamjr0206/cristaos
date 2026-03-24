@@ -14,40 +14,38 @@ verificaPerfil(['ADMIN']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     date_default_timezone_set('America/Sao_Paulo');
-    $id             = $_POST['id_aula'] ?? null;
+
+    $id             = $_POST['id'] ?? null;
     $dataaula_mysql = $_POST['data_aula'] ?? '';
-    $dataaula       = date('Y-m-d H:i:s',strtotime($dataaula_mysql));
+    $dataaula       = date('Y-m-d H:i:s', strtotime($dataaula_mysql));
     $nomeaula       = $_POST['nome_da_aula'] ?? '';
     $evento         = $_POST['id_evento'] ?? '';
     $curso          = $_POST['id_curso'] ?? '';
 
     if ($id) {
-        $sql = "UPDATE aulas SET  data_aula = :da
-        , nome_da_aula = :nome_da_aula, id_evento = :id_evento, id_curso = :id_curso WHERE id_aula = :id";
+        $sql = "UPDATE aulas 
+                SET data_aula = :da,
+                    nome_da_aula = :nome,
+                    id_evento = :evento,
+                    id_curso = :curso
+                WHERE id_aula = :id";
 
         $stmt = $con->prepare($sql);
-
-        $stmt -> bindParam(':id', $id);
-        $stmt -> bindParam(':da', $dataaula);
-        $stmt -> bindParam(':nome_da_aula', $nomeaula);
-        $stmt -> bindParam(':id_evento', $evento);
-        $stmt -> bindParam(':id_curso', $curso);
-
-        } else {
-
+        $stmt->bindParam(':id', $id);
+    } else {
         $sql = "INSERT INTO aulas (data_aula, nome_da_aula, id_evento, id_curso)
-         VALUES (:da, :nome_da_aula, :id_evento, :id_curso)";
+                VALUES (:da, :nome, :evento, :curso)";
 
         $stmt = $con->prepare($sql);
+    }
 
-        $stmt -> bindParam(':da', $dataaula);
-        $stmt -> bindParam(':nome_da_aula', $nomeaula);
-        $stmt -> bindParam(':id_evento', $evento);
-        $stmt -> bindParam(':id_curso', $curso);
+    $stmt->bindParam(':da', $dataaula);
+    $stmt->bindParam(':nome', $nomeaula);
+    $stmt->bindParam(':evento', $evento);
+    $stmt->bindParam(':curso', $curso);
 
-       }
+    $stmt->execute();
 
-        $stmt->execute();
     header("Location: aulas.php");
     exit;
 }
@@ -58,11 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['delete'])) {
 
     $id = $_GET['delete'];
-    verificaPerfil(['ADMIN']);
 
     $sql = "DELETE FROM aulas WHERE id_aula = :id";
-    $stmt = $con ->prepare($sql);
-    $stmt->bindParam(':id',$id);
+    $stmt = $con->prepare($sql);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
 
     header("Location: aulas.php");
@@ -75,23 +72,40 @@ if (isset($_GET['delete'])) {
 $editar = null;
 
 if (isset($_GET['edit'])) {
+
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM aulas where id_aula = :id");
-    $stmt->bindparam(':id', $id);
-    $stmt->execute();
-    $editar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $con->prepare("SELECT * FROM aulas WHERE id_aula = ?");
+    $stmt->execute([$id]);
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+/* =====================
+   SELECTS (EVENTOS E CURSOS)
+===================== */
+$stmt2 = $con->query("SELECT id_evento, descricao FROM eventos");
+$eventos = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt3 = $con->query("SELECT id_curso, nome_do_curso FROM cursos");
+$cursos = $stmt3->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
    LISTAR
 ===================== */
-    $stmt = $con->query("SELECT id_aula, data_aula, nome_da_aula, eventos.id_evento,
-            eventos.descricao as evento, cursos.id_curso, cursos.nome_do_curso as curso FROM aulas inner join eventos on 
-            aulas.id_evento = eventos.id_evento inner join cursos on 
-            aulas.id_curso = cursos.id_curso order by data_aula");
+$stmt = $con->query("
+    SELECT 
+        aulas.id_aula,
+        aulas.data_aula,
+        aulas.nome_da_aula,
+        eventos.descricao AS evento,
+        cursos.nome_do_curso AS curso
+    FROM aulas
+    INNER JOIN eventos ON aulas.id_evento = eventos.id_evento
+    INNER JOIN cursos ON aulas.id_curso = cursos.id_curso
+    ORDER BY data_aula
+");
 
-$aulas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
-
+$aulas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -99,16 +113,16 @@ $aulas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <title>Aulas</title>
+
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
-        input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
-        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 5px; }
-        th { background: #eee; }
         a { margin-right: 10px; }
+
     </style>
+
 </head>
 <body>
 
@@ -116,39 +130,37 @@ $aulas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 <form method="post">
 
-    <input type="hidden" name="id" value="<?= $editar['id_aula'] ?? '' ?>"
+    <input type="hidden" name="id" value="<?= $editar['id_aula'] ?? '' ?>">
 
     <label>Data e horário da Aula</label>
-    <input type="datetime-local" name="data_aula" required value="<?= htmlspecialchars($editar['data_aula'] ?? '') ?>">
+    <input type="datetime-local" name="data_aula" required
+        value="<?= isset($editar['data_aula']) ? date('Y-m-d\TH:i', strtotime($editar['data_aula'])) : '' ?>">
 
     <label>Assunto da Aula</label>
-    <input name="nome_da_aula" required value="<?= htmlspecialchars($editar['nome_da_aula'] ?? '') ?>">
+    <input name="nome_da_aula" required
+        value="<?= htmlspecialchars($editar['nome_da_aula'] ?? '') ?>">
 
-    <label>Escolha o Evento para a Aula</label>
-				<select name="id_evento" required>
-					<?php
-						$result_niveis_acessos =$con->prepare("SELECT * FROM eventos order by descricao ");
-						$result_niveis_acessos->execute();
-						$resultado_niveis_acesso = $result_niveis_acessos->fetchAll(PDO::FETCH_ASSOC);
-						foreach($resultado_niveis_acesso as $row_niveis_acessos){?>
-							<option value="<?php echo $row_niveis_acessos['id_evento']; ?>"><?php echo $row_niveis_acessos['descricao']; ?></option> <?php
-						}
-						
-					?>
-				</select>
-    
-    <label>Escolha o Curso da Aula</label>
-				<select name="id_curso" required>
-					<?php
-						$result_niveis_acessos =$con->prepare("SELECT * FROM cursos order by nome_do_curso ");
-						$result_niveis_acessos->execute();
-						$resultado_niveis_acesso = $result_niveis_acessos->fetchAll(PDO::FETCH_ASSOC);
-						foreach($resultado_niveis_acesso as $row_niveis_acessos){?>
-							<option value="<?php echo $row_niveis_acessos['id_curso']; ?>"><?php echo $row_niveis_acessos['nome_do_curso']; ?></option> <?php
-						}
-						
-					?>
-				</select>
+    <label>Evento</label>
+    <select name="id_evento" required>
+        <option value="">Selecione</option>
+        <?php foreach ($eventos as $evento): ?>
+            <option value="<?= $evento['id_evento'] ?>"
+                <?= (isset($editar['id_evento']) && $editar['id_evento'] == $evento['id_evento']) ? 'selected' : '' ?>>
+                <?= $evento['descricao'] ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <label>Curso</label>
+    <select name="id_curso" required>
+        <option value="">Selecione</option>
+        <?php foreach ($cursos as $c): ?>
+            <option value="<?= $c['id_curso'] ?>"
+                <?= (isset($editar['id_curso']) && $editar['id_curso'] == $c['id_curso']) ? 'selected' : '' ?>>
+                <?= $c['nome_do_curso'] ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
@@ -159,9 +171,9 @@ $aulas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 <h2>Lista de Aulas</h2>
 
-<table>
+<table border="1">
     <tr>
-        <th>Data da Aula</th>
+        <th>Data</th>
         <th>Aula</th>
         <th>Evento</th>
         <th>Curso</th>
@@ -174,10 +186,10 @@ $aulas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($a['nome_da_aula']) ?></td>
             <td><?= htmlspecialchars($a['evento']) ?></td>
             <td><?= htmlspecialchars($a['curso']) ?></td>
-        <td>
+            <td>
                 <a href="aulas.php?edit=<?= $a['id_aula'] ?>">Editar</a>
                 <a href="aulas.php?delete=<?= $a['id_aula'] ?>"
-                   onclick="return confirm('Deseja excluir esta Aula ?')">
+                   onclick="return confirm('Deseja excluir esta Aula?')">
                    Excluir
                 </a>
             </td>

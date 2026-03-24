@@ -18,70 +18,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome   = $_POST['nome'];
     $email  = $_POST['email'];
     $perfil = $_POST['perfil'];
-//    $ativo  = isset($_POST['ativo']) ? 1 : 0;
 
-    // senha só é atualizada se for informada
     $senha = !empty($_POST['senha'])
         ? password_hash($_POST['senha'], PASSWORD_DEFAULT)
         : null;
 
     if ($id) {
+
         if ($senha) {
             $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = :nome, email = :email, perfil = :perfil, senha = :senha
-                WHERE id_usuario = ?
+                SET nome_usuario = :nome,
+                    email = :email,
+                    perfil = :perfil,
+                    senha = :senha
+                WHERE id_usuario = :id
             ");
-            $stmt->bindParam(':nome', $nome);
-            $stmt->bindParam(':email', $email);
+
             $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':perfil', $perfil);
-  //        $stmt->bindParam(':ativo', $ativo);
-            $stmt->bindParam(':id', $id);
+
         } else {
             $stmt = $con->prepare("
                 UPDATE usuarios
-                SET nome_usuario = :nome, email = :email, senha = :senha, perfil = :perfil
+                SET nome_usuario = :nome,
+                    email = :email,
+                    perfil = :perfil
                 WHERE id_usuario = :id
             ");
-            $stmt->bindParam(':nome', $nome);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':perfil', $perfil);
- //         $stmt->bindParam(':ativo', $ativo);
-            $stmt->bindParam(':id', $id);        }
+        }
+
+        $stmt->bindParam(':id', $id);
+
     } else {
+
         $stmt = $con->prepare("
             INSERT INTO usuarios
             (nome_usuario, email, senha, perfil)
             VALUES (:nome, :email, :senha, :perfil)
         ");
-            $stmt->bindParam(':nome', $nome);
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':senha', $senha);
-            $stmt->bindParam(':perfil', $perfil);
- //         $stmt->bindParam(':ativo', $ativo);
-            $stmt->execute();
+
+        $stmt->bindParam(':senha', $senha);
     }
 
+    $stmt->bindParam(':nome', $nome);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':perfil', $perfil);
+
     $stmt->execute();
+
     header("Location: usuarios.php");
     exit;
 }
-
 /* =====================
    2) EXCLUIR
 ===================== */
 if (isset($_GET['delete'])) {
 
+    $id = $_GET['delete'];
+
     $stmt = $con->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
-    $stmt->bindParam(':id',$id);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
 
     header("Location: usuarios.php");
     exit;
 }
-
 /* =====================
    3) CARREGAR EDIÇÃO
 ===================== */

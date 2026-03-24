@@ -21,51 +21,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email       = $_POST['email'] ?? '';
     $cidade      = $_POST['cidade'] ?? '';
     $oracao      = $_POST['oracao'] ?? '';
-    $data        = $_POST['data'] ?? '';
-    $cadastrante = $_POST['cadastrante'] ?? '';    
+    $cadastrante = $_POST['cadastrante'] ?? '';
 
     if ($id) {
-        $sql = "UPDATE visitantes SET nome = :nome
-        , sexo = :sexo, id_membro = :id_tipomembro, telefone = :telefone, email = :email, cidade = :cidade,
-         oracao =:oracao, data_cadastro = :data_cadastro, cadastrante = :cadastrante 
-         WHERE id_visitante = :id_visitante";
+        $sql = "UPDATE visitantes SET 
+                    nome = :nome,
+                    sexo = :sexo,
+                    id_membro = :tipomembro,
+                    telefone = :telefone,
+                    email = :email,
+                    cidade = :cidade,
+                    oracao = :oracao,
+                    cadastrante = :cadastrante
+                WHERE id_visitante = :id";
 
         $stmt = $con->prepare($sql);
-        $stmt->  bindParam('id_visitante', $id); 
-        $stmt -> bindParam(':nome', $nome);
-        $stmt -> bindParam(':sexo', $sexo);
-        $stmt -> bindParam(':id_tipomembro', $tipomembro);
-        $stmt -> bindParam(':telefone', $telefone);
-        $stmt -> bindParam(':email', $email);
-        $stmt -> bindParam(':cidade', $cidade);
-        $stmt -> bindParam(':oracao', $oracao);
-        $stmt -> bindParam(':data_cadastro', $data);
-        $stmt -> bindParam(':cadastrante', $cadastrante);
-
-        } else {
-
-        $sql = "INSERT INTO visitantes (nome, sexo, id_membro, telefone, email,
-         cidade, oracao, data_cadastro, cadastrante)
-         VALUES (:nome, :sexo, :id_tipomembro,
-          :telefone, :email , :cidade, :oracao,
-          :data_cadastro, :cadastrante)";
+        $stmt->bindParam(':id', $id);
+    } else {
+        $sql = "INSERT INTO visitantes 
+                    (nome, sexo, id_membro, telefone, email, cidade, oracao, cadastrante)
+                VALUES 
+                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :oracao, :cadastrante)";
 
         $stmt = $con->prepare($sql);
-
-        $stmt -> bindParam(':nome', $nome);
-        $stmt -> bindParam(':sexo', $sexo);
-        $stmt -> bindParam(':id_tipomembro', $tipomembro);
-        $stmt -> bindParam(':telefone', $telefone);
-        $stmt -> bindParam(':email', $email);
-        $stmt -> bindParam(':cidade', $cidade);
-        $stmt -> bindParam(':oracao', $oracao);
-        $stmt -> bindParam(':data_cadastro', $data);
-        $stmt -> bindParam(':cadastrante', $cadastrante);
-
-
     }
 
+    $stmt->bindParam(':nome', $nome);
+    $stmt->bindParam(':sexo', $sexo);
+    $stmt->bindParam(':tipomembro', $tipomembro);
+    $stmt->bindParam(':telefone', $telefone);
+    $stmt->bindParam(':email', $email);
+    $stmt->bindParam(':cidade', $cidade);
+    $stmt->bindParam(':oracao', $oracao);
+    $stmt->bindParam(':cadastrante', $cadastrante);
+
     $stmt->execute();
+
     header("Location: visitantes.php");
     exit;
 }
@@ -76,11 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['delete'])) {
 
     $id = $_GET['delete'];
-    verificaPerfil(['ADMIN','OPERADOR','LIDER']);
 
-    $sql = "DELETE FROM visitantes WHERE id_visitante = :id_visitante";
-    $stmt = $con ->prepare($sql);
-    $stmt->bindParam(':id_visitante',$id);
+    $sql = "DELETE FROM visitantes WHERE id_visitante = :id";
+    $stmt = $con->prepare($sql);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
 
     header("Location: visitantes.php");
@@ -94,134 +84,155 @@ $editar = null;
 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = :id_visitante");
-    $stmt->bindparam(':id_visitante', $id);
+
+    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = :id");
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 /* =====================
+   SELECTS
+===================== */
+$stmtTipo = $con->query("SELECT id_tipo, descricao FROM tipo ORDER BY descricao");
+$tipos = $stmtTipo->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtMembros = $con->query("SELECT id_membro, nome_do_membro FROM membros ORDER BY nome_do_membro");
+$membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);
+
+/* =====================
    LISTAR
 ===================== */
-$stmt = $con -> query("SELECT id_visitante, nome, sexo, tipo.descricao, telefone, cidade, oracao, data_cadastro,
-cadastrante  FROM visitantes inner join tipo on id_membro = id_tipo order by nome");
-$visitantes = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+$stmt = $con->query("
+    SELECT 
+        v.id_visitante,
+        v.nome,
+        v.sexo,
+        t.descricao,
+        v.telefone,
+        v.email,
+        v.cidade,
+        v.oracao,
+        v.cadastrante
+    FROM visitantes v
+    INNER JOIN tipo t ON v.id_membro = t.id_tipo
+    ORDER BY v.nome
+");
 
+$visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Visitantes</title>
+<meta charset="UTF-8">
+<title>Visitantes</title>
+
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
-        input { margin: 5px 0; padding: 6px; width: 300px; display: block; }
-        select { margin: 5px 0; padding: 6px; width: 300px; display: block; }
+        input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 5px; }
-        th { background: #eee; }
         a { margin-right: 10px; }
+
     </style>
+
 </head>
 <body>
 
 <h2><?= $editar ? 'Editar Visitante' : 'Novo Visitante' ?></h2>
 
 <form method="post">
-    <input type="hidden" name="id" value="<?= $editar['id_visitante'] ?? '' ?>">
 
-    <label>Nome</label>
-    <input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
+<input type="hidden" name="id" value="<?= $editar['id_visitante'] ?? '' ?>">
 
-    <label>Sexo</label>
-    <select name="sexo" required>
-        <?php foreach (['Masculino','Feminino'] as $s): ?>
-            <option value="<?= $s ?>"
-                <?= ($editar && $editar['sexo'] === $s) ? 'selected' : '' ?>>
-                <?= $s ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
+<label>Nome</label>
+<input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
 
-	<label>Tipo de Membro</label> 
-				<select name="id_tipomembro" required>
-					<option>Selecione</option>
-					<?php
-						$result_niveis_acessos =$con->prepare("SELECT * FROM tipo order by descricao ");
-						$result_niveis_acessos->execute();
-						$resultado_niveis_acesso = $result_niveis_acessos->fetchAll(PDO::FETCH_ASSOC);
-						foreach($resultado_niveis_acesso as $row_niveis_acessos){?>
-							<option value="<?php echo $row_niveis_acessos['id_tipo']; ?>"><?php echo $row_niveis_acessos['descricao']; ?></option> <?php
-						}
-						
-					?>
-				</select>
+<label>Sexo</label>
+<select name="sexo" required>
+    <?php foreach (['Masculino','Feminino'] as $s): ?>
+        <option value="<?= $s ?>" <?= (isset($editar['sexo']) && $editar['sexo'] == $s) ? 'selected' : '' ?>>
+            <?= $s ?>
+        </option>
+    <?php endforeach; ?>
+</select>
 
-    <label>Telefone</label>
-    <input name="telefone" value="<?= htmlspecialchars($editar['telefone'] ?? '') ?>">
+<label>Tipo de Membro</label>
+<select name="id_tipomembro" required>
+    <option value="">Selecione</option>
+    <?php foreach ($tipos as $t): ?>
+        <option value="<?= $t['id_tipo'] ?>"
+            <?= (isset($editar['id_membro']) && $editar['id_membro'] == $t['id_tipo']) ? 'selected' : '' ?>>
+            <?= $t['descricao'] ?>
+        </option>
+    <?php endforeach; ?>
+</select>
 
-    <label>Cidade</label>
-    <input  name="cidade" value="<?= htmlspecialchars($editar['cidade'] ?? '') ?>">
+<label>Telefone</label>
+<input name="telefone" value="<?= htmlspecialchars($editar['telefone'] ?? '') ?>">
 
-    <label>Pedido de Oração</label>
-    <input  type='text' name="oracao" value="<?= htmlspecialchars($editar['oracao'] ?? '') ?>">
+<label>Email</label>
+<input name="email" value="<?= htmlspecialchars($editar['email'] ?? '') ?>">
 
-    <label>Data do Cadastro</label>
-    <input  type="date" name="data" value="<?= htmlspecialchars($editar['data_cadastro'] ?? '') ?>">
+<label>Cidade</label>
+<input name="cidade" value="<?= htmlspecialchars($editar['cidade'] ?? '') ?>">
 
+<label>Pedido de Oração</label>
+<input name="oracao" value="<?= htmlspecialchars($editar['oracao'] ?? '') ?>">
 
-	<label>Cadastro feito Por</label>
-				<select name="cadastrante">
-					<option>Selecione</option>
-					<?php
-						$result_niveis_acessos =$con->prepare("SELECT * FROM membros order by nome_do_membro");
-						$result_niveis_acessos->execute();
-						$resultado_niveis_acesso = $result_niveis_acessos->fetchAll(PDO::FETCH_ASSOC);
-						foreach($resultado_niveis_acesso as $row_niveis_acessos){?>
-							<option value="<?php echo $row_niveis_acessos['nome_do_membro']; ?>"><?php echo $row_niveis_acessos['nome_do_membro']; ?></option> <?php
-						}
-						
-					?>
-				</select><br><br>
+<label>Cadastrado por</label>
+<select name="cadastrante">
+    <option value="">Selecione</option>
+    <?php foreach ($membros as $m): ?>
+        <option value="<?= $m['id_membro'] ?>"
+            <?= (isset($editar['cadastrante']) && $editar['cadastrante'] == $m['id_membro']) ? 'selected' : '' ?>>
+            <?= $m['nome_do_membro'] ?>
+        </option>
+    <?php endforeach; ?>
+</select>
 
-    <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
+<button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
-    <?php if ($editar): ?>
-        <a href="visitantes.php">Cancelar</a>
-    <?php endif; ?>
+<?php if ($editar): ?>
+    <a href="visitantes.php">Cancelar</a>
+<?php endif; ?>
+
 </form>
 
-<h2>Lista de Visitantes na Igreja</h2>
+<h2>Lista de Visitantes</h2>
 
-<table>
-    <tr>
-        <th>Nome</th>
-        <th>Sexo</th>
-        <th>Membro</th>
-        <th>Telefone</th>
-        <th>Cidade</th>
-        <th>Pedido de Oraçao</th>
-    </tr>
+<table border="1">
+<tr>
+    <th>Nome</th>
+    <th>Sexo</th>
+    <th>Tipo</th>
+    <th>Telefone</th>
+    <th>Email</th>
+    <th>Cidade</th>
+    <th>Oração</th>
+    <th>Ações</th>
+</tr>
 
-    <?php foreach ($visitantes as $v): ?>
-        <tr>
-            <td><?= htmlspecialchars($v['nome']) ?></td>
-            <td><?= htmlspecialchars($v['sexo']) ?></td>
-            <td><?= htmlspecialchars($v['descricao']) ?></td>
-            <td><?= htmlspecialchars($v['telefone']) ?></td>
-            <td><?= htmlspecialchars($v['cidade']) ?></td>
-            <td><?= htmlspecialchars($v['oracao']) ?></td>
-        <td>
-                <a href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
-                <a href="visitante.php?delete=<?= $v['id_visitante'] ?>"
-                   onclick="return confirm('Deseja excluir esta Visitante ?')">
-                   Excluir
-                </a>
-            </td>
-        </tr>
-    <?php endforeach; ?>
+<?php foreach ($visitantes as $v): ?>
+<tr>
+    <td><?= htmlspecialchars($v['nome']) ?></td>
+    <td><?= htmlspecialchars($v['sexo']) ?></td>
+    <td><?= htmlspecialchars($v['descricao']) ?></td>
+    <td><?= htmlspecialchars($v['telefone']) ?></td>
+    <td><?= htmlspecialchars($v['email']) ?></td>
+    <td><?= htmlspecialchars($v['cidade']) ?></td>
+    <td><?= htmlspecialchars($v['oracao']) ?></td>
+    <td>
+        <a href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
+        <a href="visitantes.php?delete=<?= $v['id_visitante'] ?>"
+           onclick="return confirm('Deseja excluir este visitante?')">
+           Excluir
+        </a>
+    </td>
+</tr>
+<?php endforeach; ?>
+
 </table>
 
 </body>

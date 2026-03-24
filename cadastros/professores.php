@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':professor',$professor);
         } else {
 
-        $sql = "INSERT INTO cargos (nome_do_professor)
+        $sql = "INSERT INTO professores (nome_do_professor)
          VALUES (:professor)";
 
         $stmt = $con->prepare($sql);
