@@ -8,6 +8,7 @@
     <a href="<?= BASE_URL ?>cadastros/eventos.php">👯‍♂️ Eventos |</a>
     <a href="<?= BASE_URL ?>cadastros/professores.php">👩‍🏫 Professores |</a>
     <a href="<?= BASE_URL ?>cadastros/tipo.php"> 👩🏾‍🤝‍👩🏻 Tipos de Membros |</a>
+    <a href="<?= BASE_URL ?>cadastros/membros.php">👩‍🤝‍👩 Membros |</a>
     <a href="<?= BASE_URL ?>cadastros/aulas.php"> 📓 Aulas |</a>
     <a href="<?= BASE_URL ?>relatorios/lista_membros.php">📝 Listagem de Membros |</a>        
     <a href="../login.php">🚪 Sair</a>
