@@ -1,6 +1,6 @@
 <?php
-$host = "localhost:3306";
-$db   = "szjw_fazevedo";
+$host = "szjw.com.br";
+$db   = "szjw_cristaos";
 $user = "szjw_william";
 $pass = "Wia685618&zenilda";
 
