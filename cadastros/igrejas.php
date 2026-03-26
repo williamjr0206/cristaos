@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          cep =:cep, latitude = :latitude, longitude = :longitude 
          WHERE id_igreja = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
 
         $stmt -> bindParam(':nome', $nome);
         $stmt -> bindParam(':denominacao', $denominacao);
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           :estado, :municipio , :endereco, :cep,
           :latitude, :longitude)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
 
         $stmt -> bindParam(':nome', $nome);
         $stmt -> bindParam(':denominacao', $denominacao);
@@ -79,7 +79,7 @@ if (isset($_GET['delete'])) {
     verificaPerfil(['ADMIN']);
 
     $sql = "DELETE FROM igrejas WHERE id_igreja = :id";
-    $stmt = $con ->prepare($sql);
+    $stmt = $pdo ->prepare($sql);
     $stmt->bindParam(':id_igreja',$id);
     $stmt->execute();
 
@@ -94,7 +94,7 @@ $editar = null;
 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM igrejas WHERE id_igreja = :id");
+    $stmt = $pdo->prepare("SELECT * FROM igrejas WHERE id_igreja = :id");
     $stmt->bindparam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -103,7 +103,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con -> query("SELECT * FROM igrejas order by nome");
+$stmt = $pdo -> query("SELECT * FROM igrejas order by nome");
 $igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>

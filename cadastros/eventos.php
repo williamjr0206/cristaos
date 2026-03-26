@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO eventos (descricao)
                 VALUES (:descricao)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
     }
 
     $stmt->bindParam(':descricao', $descricao);
@@ -48,7 +48,7 @@ if (isset($_GET['delete'])) {
     verificaPerfil(['ADMIN']);
 
     $sql = "DELETE FROM eventos WHERE id_evento = :id";
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -65,7 +65,7 @@ if (isset($_GET['edit'])) {
 
     $id = $_GET['edit'];
 
-    $stmt = $con->prepare("SELECT * FROM eventos WHERE id_evento = :id");
+    $stmt = $pdo->prepare("SELECT * FROM eventos WHERE id_evento = :id");
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -75,7 +75,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con->query("SELECT * FROM eventos ORDER BY descricao");
+$stmt = $pdo->query("SELECT * FROM eventos ORDER BY descricao");
 $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 

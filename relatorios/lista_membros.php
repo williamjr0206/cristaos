@@ -11,7 +11,7 @@ verificaPerfil(['ADMIN','OPERADOR','CONSULTA']);
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con -> query("SELECT * FROM membros order by nome_do_membro");
+$stmt = $pdo -> query("SELECT * FROM membros order by nome_do_membro");
 $membros = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "UPDATE tipo SET descricao = :descricao
          WHERE id_tipo = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->bindParam('id', $id);
         $stmt->bindParam(':descricao',$tipo);
         } else {
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO tipo (descricao)
          VALUES (:descricao)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
 
         $stmt -> bindParam(':descricao', $tipo);
 
@@ -48,7 +48,7 @@ if (isset($_GET['delete'])) {
     verificaPerfil(['ADMIN','OPERADOR']);
 
     $sql = "DELETE FROM tipo WHERE id_tipo = :id";
-    $stmt = $con ->prepare($sql);
+    $stmt = $pdo ->prepare($sql);
     $stmt->bindParam(':id',$id);
     $stmt->execute();
 
@@ -63,7 +63,7 @@ $editar = null;
 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM tipo WHERE id_tipo = :id");
+    $stmt = $pdo->prepare("SELECT * FROM tipo WHERE id_tipo = :id");
     $stmt->bindparam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -72,7 +72,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con -> query("SELECT * FROM tipo order by descricao");
+$stmt = $pdo -> query("SELECT * FROM tipo order by descricao");
 $tipo = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>

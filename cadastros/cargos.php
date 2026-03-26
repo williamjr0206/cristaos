@@ -24,27 +24,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 SET descricao = :descricao
                 WHERE id_curso = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
 
         $stmt->bindParam(':descricao', $descricao);
         $stmt->bindParam(':id', $id);
+
+        $stmt->execute();        
 
     } else {
 
     $sql = "INSERT INTO cursos (descricao)
             VALUES (:descricao)";
 
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
 
     $stmt->bindParam(':descricao', $descricao);
 
-            }
+        $stmt->execute();
+
+       header("Location: cargos.php");
+    exit;
+
+           }
         $stmt->execute();
 }
 
-    header("Location: cargos.php");
-    exit;
-
+ 
 
 /* =====================
    EXCLUIR
@@ -56,7 +61,7 @@ if (isset($_GET['delete'])) {
     verificaPerfil(['ADMIN']);
 
     $sql = "DELETE FROM cargos WHERE id_cargo = :id";
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -73,7 +78,7 @@ if (isset($_GET['edit'])) {
 
     $id = $_GET['edit'];
 
-    $stmt = $con->prepare("SELECT * FROM cargos WHERE id_cargo = :id");
+    $stmt = $pdo->prepare("SELECT * FROM cargos WHERE id_cargo = :id");
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -83,7 +88,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con->query("SELECT * FROM cargos ORDER BY descricao");
+$stmt = $pdo->query("SELECT * FROM cargos ORDER BY descricao");
 $cargos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>

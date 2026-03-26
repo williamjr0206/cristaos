@@ -60,6 +60,8 @@ if (!isset($_SESSION['usuario_id'])) {
     <?php if ($_SESSION['perfil'] === 'LIDER' or $_SESSION['perfil'] === 'ADMIN'): ?>
         <a href="<?= BASE_URL ?>cadastros/visitantes.php">👤 Visitantes |</a>
         <a href="<?= BASE_URL ?>cadastros/aulas.php">📓 Aulas |</a>
+        <a href="<?= BASE_URL ?>cadastros/presencas_lote.php">📖 Presenças por Lote |</a>
+        
     <?php endif; ?>
 
     

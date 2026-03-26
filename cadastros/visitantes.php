@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     cadastrante = :cadastrante
                 WHERE id_visitante = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO visitantes 
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES 
                     (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :oracao, :cadastrante)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
     }
 
     $stmt->bindParam(':nome', $nome);
@@ -69,7 +69,7 @@ if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
 
     $sql = "DELETE FROM visitantes WHERE id_visitante = :id";
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -85,7 +85,7 @@ $editar = null;
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
 
-    $stmt = $con->prepare("SELECT * FROM visitantes WHERE id_visitante = :id");
+    $stmt = $pdo->prepare("SELECT * FROM visitantes WHERE id_visitante = :id");
     $stmt->bindParam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -94,16 +94,16 @@ if (isset($_GET['edit'])) {
 /* =====================
    SELECTS
 ===================== */
-$stmtTipo = $con->query("SELECT id_tipo, descricao FROM tipo ORDER BY descricao");
+$stmtTipo = $pdo->query("SELECT id_tipo, descricao FROM tipo ORDER BY descricao");
 $tipos = $stmtTipo->fetchAll(PDO::FETCH_ASSOC);
 
-$stmtMembros = $con->query("SELECT id_membro, nome_do_membro FROM membros ORDER BY nome_do_membro");
+$stmtMembros = $pdo->query("SELECT id_membro, nome_do_membro FROM membros ORDER BY nome_do_membro");
 $membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con->query("
+$stmt = $pdo->query("
     SELECT 
         v.id_visitante,
         v.nome,

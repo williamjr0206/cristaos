@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':senha', $senha);
 
         } else {
-            $stmt = $con->prepare("
+            $stmt = $pdo->prepare("
                 UPDATE usuarios
                 SET nome_usuario = :nome,
                     email = :email,
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
-        $stmt = $con->prepare("
+        $stmt = $pdo->prepare("
             INSERT INTO usuarios
             (nome_usuario, email, senha, perfil)
             VALUES (:nome, :email, :senha, :perfil)
@@ -76,7 +76,7 @@ if (isset($_GET['delete'])) {
 
     $id = $_GET['delete'];
 
-    $stmt = $con->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
+    $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id_usuario = :id");
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -90,7 +90,7 @@ $editar = null;
 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM usuarios WHERE id_usuario = :id");
+    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id_usuario = :id");
     $stmt->bindparam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -99,7 +99,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    4) LISTAR USUÁRIOS
 ===================== */
-$stmt = $con -> query("SELECT * FROM usuarios order by nome_usuario");
+$stmt = $pdo -> query("SELECT * FROM usuarios order by nome_usuario");
 $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>

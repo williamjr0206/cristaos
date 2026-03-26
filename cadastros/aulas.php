@@ -58,7 +58,7 @@ if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
 
     $sql = "DELETE FROM aulas WHERE id_aula = :id";
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -75,7 +75,7 @@ if (isset($_GET['edit'])) {
 
     $id = $_GET['edit'];
 
-    $stmt = $con->prepare("SELECT * FROM aulas WHERE id_aula = ?");
+    $stmt = $pdo->prepare("SELECT * FROM aulas WHERE id_aula = ?");
     $stmt->execute([$id]);
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -83,16 +83,16 @@ if (isset($_GET['edit'])) {
 /* =====================
    SELECTS (EVENTOS E CURSOS)
 ===================== */
-$stmt2 = $con->query("SELECT id_evento, descricao FROM eventos");
+$stmt2 = $pdo->query("SELECT id_evento, descricao FROM eventos");
 $eventos = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt3 = $con->query("SELECT id_curso, nome_do_curso FROM cursos");
+$stmt3 = $pdo->query("SELECT id_curso, nome_do_curso FROM cursos");
 $cursos = $stmt3->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con->query("
+$stmt = $pdo->query("
     SELECT 
         aulas.id_aula,
         aulas.data_aula,

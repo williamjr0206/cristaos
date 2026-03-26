@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     id_cargo = :id_cargo
                     where id_membro = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO membros (id_igreja, nome_do_membro, id_tipo, telefone, sexo, data_nascimento,
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         :estado_civil, :cep, :email, :ativo, :ativo, :data_batismo, :data_profissao_de_fe,
                         :id_cargo)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
     }
 
     $stmt->bindParam(':id_igreja', $id_igreja);
@@ -102,7 +102,7 @@ if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
 
     $sql = "DELETE FROM membros WHERE id_membro = :id";
-    $stmt = $con->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -119,7 +119,7 @@ if (isset($_GET['edit'])) {
 
     $id = $_GET['edit'];
 
-    $stmt = $con->prepare("SELECT * FROM membros WHERE id_membro = ?");
+    $stmt = $pdo->prepare("SELECT * FROM membros WHERE id_membro = ?");
     $stmt->execute([$id]);
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -127,19 +127,19 @@ if (isset($_GET['edit'])) {
 /* =====================
    SELECTS ( IGREJA, TIPO DE MEMBROS E CARGOS)
 ===================== */
-$stmt2 = $con->query("SELECT id_igreja, nome FROM igrejas order by nome ");
+$stmt2 = $pdo->query("SELECT id_igreja, nome FROM igrejas order by nome ");
 $igrejas = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt3 = $con->query("SELECT id_tipo, descricao FROM tipo order by descricao");
+$stmt3 = $pdo->query("SELECT id_tipo, descricao FROM tipo order by descricao");
 $tipos = $stmt3->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt4 = $con->query("SELECT id_cargo, descricao FROM cargos order by descricao");
+$stmt4 = $pdo->query("SELECT id_cargo, descricao FROM cargos order by descricao");
 $cargos = $stmt4->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con->query("
+$stmt = $pdo->query("
     SELECT 
         membros.id_membro,
         membros.nome_do_membro, membros.id_igreja, membros.id_cargo,

@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO professores (nome_do_professor)
          VALUES (:professor)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
 
         $stmt -> bindParam(':professor', $professor);
 
@@ -48,7 +48,7 @@ if (isset($_GET['delete'])) {
     verificaPerfil(['ADMIN']);
 
     $sql = "DELETE FROM professores WHERE id_professor = :id";
-    $stmt = $con ->prepare($sql);
+    $stmt = $pdo ->prepare($sql);
     $stmt->bindParam(':id',$id);
     $stmt->execute();
 
@@ -63,7 +63,7 @@ $editar = null;
 
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
-    $stmt = $con->prepare("SELECT * FROM professores WHERE id_professor = :id");
+    $stmt = $pdo->prepare("SELECT * FROM professores WHERE id_professor = :id");
     $stmt->bindparam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -72,7 +72,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $con -> query("SELECT * FROM professores order by nome_do_professor");
+$stmt = $pdo -> query("SELECT * FROM professores order by nome_do_professor");
 $professores = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 ?>
