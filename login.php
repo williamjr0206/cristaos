@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $senha = $_POST['senha'] ?? '';
 
-    $stmt = $con->prepare(
+    $stmt = $pdo->prepare(
         "SELECT id_usuario, nome_usuario, perfil, senha
          FROM usuarios
          WHERE email = :email
