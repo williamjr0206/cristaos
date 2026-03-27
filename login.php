@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['nome'] = $user['nome_usuario'];
         $_SESSION['perfil'] = $user['perfil'];
 
-        header("Location: index.php");
+        header("Location: " . BASE_URL . "index.php");
         exit;
     } else {
         $erro = "Usuário ou senha inválidos";

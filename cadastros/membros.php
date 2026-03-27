@@ -3,10 +3,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
-
-verificaPerfil(['ADMIN']);
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 /* =====================
    SALVAR / EDITAR
@@ -160,7 +159,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
     <title>Membros da Igreja</title>
 
     <style>
@@ -239,7 +238,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
         value="<?= htmlspecialchars($editar['nome_do_pai'] ?? '') ?>">
 
 <label>Nome da Mãe</label>
-<input name="nome_da_mae" required
+<input name="nome_da_mae" 
         value="<?= htmlspecialchars($editar['nome_da_mae'] ?? '') ?>">
 
 <label>Tipo Sanguineo</label>

@@ -3,10 +3,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
-
-verificaPerfil(['ADMIN','OPERADOR','LIDER']);
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 /* =====================
    SALVAR / EDITAR
@@ -45,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['delete'])) {
 
     $id = $_GET['delete'];
-    verificaPerfil(['ADMIN','LIDER']);
 
     $sql = "DELETE FROM cursos WHERE id_curso = :id";
     $stmt = $pdo ->prepare($sql);
@@ -81,7 +79,7 @@ $cursos = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Cursos</title>
     <style>
         body { font-family: Arial; margin: 20px; }

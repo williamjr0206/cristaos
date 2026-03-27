@@ -3,10 +3,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
-
-verificaPerfil(['ADMIN']);
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 /* =====================
    SALVAR / EDITAR
@@ -36,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO aulas (data_aula, nome_da_aula, id_evento, id_curso)
                 VALUES (:da, :nome, :evento, :curso)";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
     }
 
     $stmt->bindParam(':da', $dataaula);
@@ -111,7 +110,7 @@ $aulas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
     <title>Aulas</title>
 
     <style>

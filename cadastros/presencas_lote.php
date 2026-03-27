@@ -3,65 +3,88 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 // =====================
 // PEGAR VALORES FIXOS
 // =====================
-$data_fixa = $_GET['data'] ?? date('Y-m-d H:i:s');
+$data_fixa = $_GET['data_aula'] ?? date('Y-m-d H:i:s');
 $professor_fixo = $_GET['professor'] ?? '';
 $aula_fixa = $_GET['aula'] ?? '';
+$id_tipo = $_POST['id_tipo'];
 
 // =====================
 // SALVAR EM LOTE
 // =====================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $data_presenca = str_replace('T', ' ', $_POST['data_presenca']) . ':00';
+    $data_presenca = str_replace('T', ' ', $_POST['data_aula']) . ':00';
 
     $id_professor = $_POST['id_professor'];
     $id_aula = $_POST['id_aula'];
     $presentes = $_POST['presentes'] ?? [];
 
-    foreach ($presentes as $id_membro) {
+foreach ($presentes as $id_membro) {
 
-        // EVITA DUPLICIDADE
-        $check = $pdo->prepare("SELECT COUNT(*) FROM presencas 
-            WHERE id_membro = :id_membro 
-            AND id_aula = :id_aula 
-            AND DATE(data_presenca) = DATE(:data)");
+    // 🔥 BUSCAR O TIPO DO MEMBRO
+    $stmtTipo = $pdo->prepare("SELECT id_tipo FROM membros WHERE id_membro = :id");
+    $stmtTipo->execute([':id' => $id_membro]);
+    $id_tipo = $stmtTipo->fetchColumn();
 
-        $check->execute([
+    // EVITA DUPLICIDADE
+    $check = $pdo->prepare("SELECT COUNT(*) FROM presencas 
+        WHERE id_membro = :id_membro 
+        AND id_aula = :id_aula 
+        AND data_aula = DATE(:data)");
+
+    $check->execute([
+        ':id_membro' => $id_membro,
+        ':id_aula' => $id_aula,
+        ':data' => $data_presenca
+    ]);
+
+    if ($check->fetchColumn() == 0) {
+
+        $sql = "INSERT INTO presencas 
+                (id_membro, id_aula, id_professor, data_aula, id_tipo)
+                VALUES (:id_membro, :id_aula, :id_professor, :data_presenca, :id_tipo)";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
             ':id_membro' => $id_membro,
             ':id_aula' => $id_aula,
-            ':data' => $data_presenca
+            ':id_professor' => $id_professor,
+            ':data_presenca' => $data_presenca,
+            ':id_tipo' => $id_tipo
         ]);
-
+    }
+}
         if ($check->fetchColumn() == 0) {
 
             $sql = "INSERT INTO presencas 
-                    (id_membro, id_aula, id_professor, data_presenca)
-                    VALUES (:id_membro, :id_aula, :id_professor, :data)";
+                    (id_membro, id_aula, id_professor, data_aula,id_tipo)
+                    VALUES (:id_membro, :id_aula, :id_professor, :data_aula,:id_tipo)";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':id_membro' => $id_membro,
                 ':id_aula' => $id_aula,
                 ':id_professor' => $id_professor,
-                ':data' => $data_presenca
+                ':data_aula' => $data_presenca
             ]);
         }
     }
 
     header("Location: presencas_lote.php?data=$data_presenca&professor=$id_professor&aula=$id_aula");
     exit;
-}
+
 
 // =====================
 // LISTAS
 // =====================
-$membros = $pdo->query("SELECT id_membro, nome_do_membro FROM membros ORDER BY nome_do_membro")->fetchAll();
+$membros = $pdo->query("SELECT id_membro, nome_do_membro, id_tipo FROM membros ORDER BY nome_do_membro")->fetchAll();
 $aulas = $pdo->query("SELECT id_aula, nome_da_aula FROM aulas ORDER BY nome_da_aula")->fetchAll();
 $professores = $pdo->query("SELECT id_professor, nome_do_professor FROM professores ORDER BY nome_do_professor")->fetchAll();
 
@@ -73,25 +96,29 @@ $presentes_hoje = [];
 if ($aula_fixa && $data_fixa) {
 
     $sql = "SELECT id_membro FROM presencas 
-            WHERE id_aula = :id_aula 
-            AND DATE(data_presenca) = DATE(:data)";
+            WHERE id_aula = :id_aula "
+            ;
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':id_aula' => $aula_fixa,
-        ':data' => $data_fixa
-    ]);
+        ]);
 
     $presentes_hoje = $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 ?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 
 <h2>Chamada por Lista (Checkbox)</h2>
 
 <form method="POST">
 
+
 <label>Data e Hora:</label><br>
-<input type="datetime-local" name="data_presenca"
+<input type="datetime-local" name="data_aula"
 value="<?= date('Y-m-d\TH:i', strtotime($data_fixa)) ?>"
 required><br><br>
 
@@ -135,6 +162,8 @@ required><br><br>
 <?php foreach ($membros as $m): ?>
 <tr>
     <td>
+        <input type="checkbox" name="presentes[]" value="<?= $m['id_tipo'] ?>"
+        <?= in_array($m['id_tipo'],$presentes_hoje) ? 'checked':'' ?>>
         <input type="checkbox" name="presentes[]" value="<?= $m['id_membro'] ?>"
         <?= in_array($m['id_membro'], $presentes_hoje) ? 'checked' : '' ?>>
     </td>
@@ -157,4 +186,5 @@ function marcarTodos() {
 function desmarcarTodos() {
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
 }
+
 </script>

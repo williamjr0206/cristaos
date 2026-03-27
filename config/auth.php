@@ -3,14 +3,46 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function verificaPerfil(array $perfisPermitidos)
+function verificaAcesso()
 {
+    if (!isset($_SESSION['usuario_id'])) {
+        header("Location: ../login.php");
+        exit;
+    }
+
+    $perfil = $_SESSION['perfil'];
+    $pagina = basename($_SERVER['PHP_SELF']);
+
+    // ADMIN pode tudo
+    if ($perfil === 'ADMIN') {
+        return;
+    }
+
+    // Permissões por perfil
+    $permissoes = [
+
+        'OPERADOR' => [
+            'visitantes.php',
+            'presencas.php',
+            'presencas_lote.php'
+        ],
+
+        'LIDER' => [
+            'aulas.php',
+            'cursos.php',
+            'presencas.php',
+            'presencas_lote.php',
+            'aniversariantes.php',
+            'lista_membros.php'
+        ]
+
+    ];
+
     if (
-        !isset($_SESSION['usuario_id']) ||
-        !in_array($_SESSION['perfil'], $perfisPermitidos)
+        !isset($permissoes[$perfil]) ||
+        !in_array($pagina, $permissoes[$perfil])
     ) {
-        header("HTTP/1.1 403 Forbidden");
-        echo "Acesso não autorizado.";
+        echo "⛔ Acesso não autorizado.";
         exit;
     }
 }
