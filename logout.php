@@ -8,5 +8,5 @@ $_SESSION = [];
 session_destroy();
 
 // redireciona para o login
-header("Location:  .<?= BASE_URL ?>. login.php");
+header("Location:cristaos/login.php");
 exit;

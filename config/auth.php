@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 function verificaAcesso()
 {
     if (!isset($_SESSION['usuario_id'])) {
-        header("Location: ../login.php");
+ //       header("Location: ../login.php");
         exit;
     }
 

@@ -1,5 +1,8 @@
 <?php
 require __DIR__ . '/../config/database.php';
+require __DIR__ . '/../includes/menu.php';
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 // Recebe datas
 $data_inicio = $_GET['inicio'] ?? '';

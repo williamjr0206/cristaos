@@ -3,10 +3,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../config/auth.php';
 require __DIR__ . '/../includes/menu.php';
-
-verificaPerfil(['ADMIN','OPERADOR','CONSULTA']);
+require __DIR__ . '/../config/auth.php';
+verificaAcesso();
 
 /* =====================
    LISTAR

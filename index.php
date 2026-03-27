@@ -8,10 +8,10 @@ require __DIR__ . '/config/auth.php';
 
 verificaAcesso();
 
-require __DIR__ . '/includes/menu.php';
+//require __DIR__ . '/includes/menu.php';
 ?>
 
-<h2>Bem-vindo ao sistema</h2>
+<h2>Bem-vindo ao sistema das Igrejas Evangélicas</h2>
 <style>
 body {
     margin: 0;
