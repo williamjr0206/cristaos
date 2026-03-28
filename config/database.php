@@ -3,10 +3,13 @@ $hostAtual = $_SERVER['HTTP_HOST'] ?? '';
 
 $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
 $host = $_SERVER['HTTP_HOST'];
-$pastaProjeto = '/cristaos/';
+
+// 🔥 AQUI ESTÁ A MUDANÇA
+$pastaProjeto = ($_SERVER['HTTP_HOST'] == 'localhost') 
+    ? '/cristaos/' 
+    : '/';
 
 define('BASE_URL', $protocolo . $host . $pastaProjeto);
-
 $ambiente = (
     $hostAtual === 'localhost'
 ) ? 'local' : 'prod';
