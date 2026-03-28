@@ -2,6 +2,33 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
+require_once __DIR__ . '/../app/controllers/MembrosController.php';
+
+
+
+//require_once $_SERVER['DOCUMENT_ROOT'] . '/app/controllers/MembrosController.php';
+
+$controller = new MembrosController();
+
+$acao = $_GET['acao'] ?? 'index';
+
+switch ($acao) {
+    case 'editar':
+        $controller->editar();
+        break;
+
+    case 'excluir':
+        $controller->excluir();
+        break;
+
+    default:
+        $controller->index();
+        break;
+}
+
+
+
 require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../includes/menu.php';
 require __DIR__ . '/../config/auth.php';
@@ -305,7 +332,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 </form>
 
-<h2>Lista de Aulas</h2>
+<h2>Lista</h2>
 
 <table border="1">
     <tr>
@@ -322,7 +349,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <tr>
             <td><?= htmlspecialchars($m['nome_do_membro']) ?></td>
             <td><?= htmlspecialchars($m['igreja']) ?></td>
-            <td><?= htmlspecialchars($m['tipo_membro']) ?></td>
+            <td><?= htmlspecialchars($m['tipo']) ?></td>
 <td>
     <?php 
         $tel = preg_replace('/\D/', '', $m['telefone'] ?? '');
@@ -342,10 +369,10 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </td>
             <td><?= htmlspecialchars($m['cargo']) ?></td>
             <td>
-                <a href="membros.php?edit=<?= $m['id_membro'] ?>">Editar</a>
-                <a href="membros.php?delete=<?= $m['id_membro'] ?>"
+                <a href="/cristaos/cadastros/membros.php?acao=editar&id=<?= $m['id_membro'] ?>">
+                <a href="/cristaos/cadastros/membros.php?acao=excluir&id=<?= $m['id_membro'] ?>">">Excluir</a>
                    onclick="return confirm('Deseja excluir mesmo esse Membro ?')">
-                   Excluir
+                
                 </a>
             </td>
         </tr>
