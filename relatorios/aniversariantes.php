@@ -1,9 +1,11 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
 require __DIR__ . '/../config/auth.php';
 verificaAcesso();
-
+require __DIR__ . '/../includes/menu.php';
 $data_inicio = $_GET['inicio'] ?? '';
 $data_fim    = $_GET['fim'] ?? '';
 

@@ -1,18 +1,24 @@
 <?php
-$hostAtual = $_SERVER['HTTP_HOST'] ?? '';
+$hostAtual = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-$protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
-$host = $_SERVER['HTTP_HOST'];
+$protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-// 🔥 AQUI ESTÁ A MUDANÇA
-$pastaProjeto = ($_SERVER['HTTP_HOST'] == 'localhost') 
-    ? '/cristaos/' 
-    : '/';
+/*
+|--------------------------------------------------------------------------
+| BASE_URL
+|--------------------------------------------------------------------------
+| Local:  http://localhost/cristaos/
+| Milbr:  https://seusite.com/cristaos/
+|--------------------------------------------------------------------------
+*/
+$pastaProjeto = '/cristaos/';
 
-define('BASE_URL', $protocolo . $host . $pastaProjeto);
-$ambiente = (
-    $hostAtual === 'localhost'
-) ? 'local' : 'prod';
+if (!defined('BASE_URL')) {
+    define('BASE_URL', $protocolo . $host . $pastaProjeto);
+}
+
+$ambiente = ($hostAtual === 'localhost') ? 'local' : 'prod';
 
 $config = require __DIR__ . "/database.$ambiente.php";
 

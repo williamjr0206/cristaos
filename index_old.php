@@ -1,11 +1,15 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require __DIR__ . '/config/database.php';
 require __DIR__ . '/config/auth.php';
 
 verificaAcesso();
 
-$baseUrl = BASE_URL;
+$baseUrl = defined('BASE_URL') ? BASE_URL : '/';
 $perfil = perfilAtual();
+
 $cards = [
     ['chave' => 'membros',    'titulo' => 'Membros',       'texto' => 'Cadastro e manutenção dos membros.',          'link' => $baseUrl . 'cadastros/membros.php'],
     ['chave' => 'visitantes', 'titulo' => 'Visitantes',    'texto' => 'Cadastro de visitantes e acompanhamentos.',  'link' => $baseUrl . 'cadastros/visitantes.php'],

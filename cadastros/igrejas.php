@@ -1,11 +1,13 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ob_start();
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
-require __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
+
+require __DIR__ . '/../includes/menu.php';
 
 /* =====================
    SALVAR / EDITAR
@@ -21,51 +23,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $endereco    = $_POST['endereco'] ?? '';
     $cep         = $_POST['cep'] ?? '';
     $latitude    = $_POST['latitude'] ?? '';
-    $longitude   = $_POST['longitude'] ?? '';    
+    $longitude   = $_POST['longitude'] ?? '';
 
     if ($id) {
-        $sql = "UPDATE igrejas SET nome = :nome
-        , denominacao = :denominacao, pais = :pais, estado = :estado, municipio = :municipio, endereco = :endereco,
-         cep =:cep, latitude = :latitude, longitude = :longitude 
-         WHERE id_igreja = :id";
+        $sql = "UPDATE igrejas SET
+                    nome = :nome,
+                    denominacao = :denominacao,
+                    pais = :pais,
+                    estado = :estado,
+                    municipio = :municipio,
+                    endereco = :endereco,
+                    cep = :cep,
+                    latitude = :latitude,
+                    longitude = :longitude
+                WHERE id_igreja = :id";
 
         $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':id', $id);
+    } else {
 
-        $stmt -> bindParam(':nome', $nome);
-        $stmt -> bindParam(':denominacao', $denominacao);
-        $stmt -> bindParam(':pais', $pais);
-        $stmt -> bindParam(':estado', $estado);
-        $stmt -> bindParam(':municipio', $municipio);
-        $stmt -> bindParam(':endereco', $endereco);
-        $stmt -> bindParam(':cep', $cep);
-        $stmt -> bindParam(':latitude', $latitude);
-        $stmt -> bindParam(':longitude', $longitude);
-        $stmt->bindParam('id', $id);
-        } else {
-
-        $sql = "INSERT INTO igrejas (nome, denominacao, pais, estado, municipio,
-         endereco, cep, latitude, longitude)
-         VALUES (:nome, :denominacao, :pais,
-          :estado, :municipio , :endereco, :cep,
-          :latitude, :longitude)";
+        $sql = "INSERT INTO igrejas
+                    (nome, denominacao, pais, estado, municipio, endereco, cep, latitude, longitude)
+                VALUES
+                    (:nome, :denominacao, :pais, :estado, :municipio, :endereco, :cep, :latitude, :longitude)";
 
         $stmt = $pdo->prepare($sql);
-
-        $stmt -> bindParam(':nome', $nome);
-        $stmt -> bindParam(':denominacao', $denominacao);
-        $stmt -> bindParam(':pais', $pais);
-        $stmt -> bindParam(':estado', $estado);
-        $stmt -> bindParam(':municipio', $municipio);
-        $stmt -> bindParam(':endereco', $endereco);
-        $stmt -> bindParam(':cep', $cep);
-        $stmt -> bindParam(':latitude', $latitude);
-        $stmt -> bindParam(':longitude', $longitude);
-
-
     }
 
+    $stmt->bindParam(':nome', $nome);
+    $stmt->bindParam(':denominacao', $denominacao);
+    $stmt->bindParam(':pais', $pais);
+    $stmt->bindParam(':estado', $estado);
+    $stmt->bindParam(':municipio', $municipio);
+    $stmt->bindParam(':endereco', $endereco);
+    $stmt->bindParam(':cep', $cep);
+    $stmt->bindParam(':latitude', $latitude);
+    $stmt->bindParam(':longitude', $longitude);
+
     $stmt->execute();
-    header("Location: igrejas.php");
+    header("Location: " . BASE_URL . "cadastros/igrejas.php");
     exit;
 }
 
@@ -77,11 +73,11 @@ if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
 
     $sql = "DELETE FROM igrejas WHERE id_igreja = :id";
-    $stmt = $pdo ->prepare($sql);
-    $stmt->bindParam(':id_igreja',$id);
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header("Location: igrejas.php");
+    header("Location: " . BASE_URL . "cadastros/igrejas.php");
     exit;
 }
 
@@ -93,7 +89,7 @@ $editar = null;
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
     $stmt = $pdo->prepare("SELECT * FROM igrejas WHERE id_igreja = :id");
-    $stmt->bindparam(':id', $id);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -101,15 +97,15 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $pdo -> query("SELECT * FROM igrejas order by nome");
-$igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+$stmt = $pdo->query("SELECT * FROM igrejas ORDER BY nome");
+$igrejas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Igrejas</title>
     <style>
         body { font-family: Arial; margin: 20px; }
@@ -133,28 +129,28 @@ $igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
     <input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
 
     <label>Denominação</label>
-    <input name="denominacao" require value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">
+    <input name="denominacao" required value="<?= htmlspecialchars($editar['denominacao'] ?? '') ?>">
 
     <label>País</label>
-    <input name="pais" require value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">
+    <input name="pais" required value="<?= htmlspecialchars($editar['pais'] ?? '') ?>">
 
     <label>Estado</label>
     <input name="estado" required value="<?= htmlspecialchars($editar['estado'] ?? '') ?>">
 
     <label>Município</label>
-    <input  name="municipio" required value="<?= htmlspecialchars($editar['municipio'] ?? '') ?>">
+    <input name="municipio" required value="<?= htmlspecialchars($editar['municipio'] ?? '') ?>">
 
     <label>Endereço</label>
-    <input  name="endereco" required value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
+    <input name="endereco" required value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
 
     <label>Cep</label>
     <input name="cep" value="<?= htmlspecialchars($editar['cep'] ?? '') ?>">
 
-	<label>Latitude</label>
+    <label>Latitude</label>
     <input name="latitude" value="<?= htmlspecialchars($editar['latitude'] ?? '') ?>">
-    
+
     <label>Longitude</label>
-    <input name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">   
+    <input name="longitude" value="<?= htmlspecialchars($editar['longitude'] ?? '') ?>">
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
@@ -177,9 +173,9 @@ $igrejas = $stmt -> fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($i['nome']) ?></td>
             <td><?= htmlspecialchars($i['denominacao']) ?></td>
             <td><?= htmlspecialchars($i['endereco']) ?></td>
-        <td>
-                <a href="igrejas.php?edit=<?= $i['id_igreja'] ?>">Editar</a>
-                <a href="visitante.php?delete=<?= $i['id_igreja'] ?>"
+            <td>
+                <a href="<?= BASE_URL ?>cadastros/igrejas.php?edit=<?= $i['id_igreja'] ?>">Editar</a>
+                <a href="<?= BASE_URL ?>cadastros/igrejas.php?delete=<?= $i['id_igreja'] ?>"
                    onclick="return confirm('Deseja excluir esta Igreja ?')">
                    Excluir
                 </a>

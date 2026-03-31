@@ -1,12 +1,14 @@
 <?php
+ob_start();
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
-require __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
+require __DIR__ . '/../includes/menu.php';
 
 /* =====================
    1) SALVAR / EDITAR
@@ -14,9 +16,9 @@ verificaAcesso();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id     = $_POST['id'] ?? null;
-    $nome   = $_POST['nome'];
-    $email  = $_POST['email'];
-    $perfil = $_POST['perfil'];
+    $nome   = $_POST['nome'] ?? '';
+    $email  = $_POST['email'] ?? '';
+    $perfil = $_POST['perfil'] ?? '';
 
     $senha = !empty($_POST['senha'])
         ? password_hash($_POST['senha'], PASSWORD_DEFAULT)
@@ -25,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($id) {
 
         if ($senha) {
-            $stmt = $con->prepare("
+            $stmt = $pdo->prepare("
                 UPDATE usuarios
                 SET nome_usuario = :nome,
                     email = :email,
@@ -33,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     senha = :senha
                 WHERE id_usuario = :id
             ");
-
             $stmt->bindParam(':senha', $senha);
 
         } else {
@@ -65,9 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->execute();
 
-    header("Location: usuarios.php");
+    header("Location: " . BASE_URL . "cadastros/usuarios.php");
     exit;
 }
+
 /* =====================
    2) EXCLUIR
 ===================== */
@@ -79,9 +81,10 @@ if (isset($_GET['delete'])) {
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header("Location: usuarios.php");
+    header("Location: " . BASE_URL . "cadastros/usuarios.php");
     exit;
 }
+
 /* =====================
    3) CARREGAR EDIÇÃO
 ===================== */
@@ -90,7 +93,7 @@ $editar = null;
 if (isset($_GET['edit'])) {
     $id = $_GET['edit'];
     $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id_usuario = :id");
-    $stmt->bindparam(':id', $id);
+    $stmt->bindParam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -98,15 +101,14 @@ if (isset($_GET['edit'])) {
 /* =====================
    4) LISTAR USUÁRIOS
 ===================== */
-$stmt = $pdo -> query("SELECT * FROM usuarios order by nome_usuario");
-$usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
-
+$stmt = $pdo->query("SELECT * FROM usuarios ORDER BY nome_usuario");
+$usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <title>Usuários</title>
     <style>
         body { font-family: Arial; margin: 20px; }
@@ -116,7 +118,6 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         th, td { border: 1px solid #ccc; padding: 8px; }
         th { background: #eee; }
         a { margin-right: 10px; }
-
     </style>
 </head>
 <body>
@@ -127,19 +128,18 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
     <input type="hidden" name="id" value="<?= $editar['id_usuario'] ?? '' ?>">
 
     <label>Nome</label>
-    <input name="nome" required value="<?= $editar['nome_usuario'] ?? '' ?>">
+    <input name="nome" required value="<?= htmlspecialchars($editar['nome_usuario'] ?? '') ?>">
 
     <label>Email</label>
-    <input type="email" name="email" required value="<?= $editar['email'] ?? '' ?>">
+    <input type="email" name="email" required value="<?= htmlspecialchars($editar['email'] ?? '') ?>">
 
     <label>Senha <?= $editar ? '(deixe em branco para manter)' : '' ?></label>
     <input type="password" name="senha" <?= $editar ? '' : 'required' ?>>
 
     <label>Perfil</label>
     <select name="perfil" required>
-        <?php foreach ( ['ADMIN','OPERADOR','LIDER','CONSULTA'] as $u): ?>
-            <option value="<?= $u ?>"
-                <?= ($editar && $editar['perfil'] === $u) ? 'selected' : '' ?>>
+        <?php foreach (['ADMIN','OPERADOR','LIDER','CONSULTA'] as $u): ?>
+            <option value="<?= $u ?>" <?= ($editar && $editar['perfil'] === $u) ? 'selected' : '' ?>>
                 <?= $u ?>
             </option>
         <?php endforeach; ?>
@@ -169,12 +169,10 @@ $usuarios = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         <tr>
             <td><?= htmlspecialchars($u['nome_usuario']) ?></td>
             <td><?= htmlspecialchars($u['email']) ?></td>
-            <td><?= $u['perfil'] ?></td>
+            <td><?= htmlspecialchars($u['perfil']) ?></td>
             <td>
                 <a href="usuarios.php?edit=<?= $u['id_usuario'] ?>">Editar</a>
-
-                <a href="usuarios.php?delete=<?= $u['id_usuario'] ?>"
-                   onclick="return confirm('Deseja excluir este usuário ?')">
+                <a href="usuarios.php?delete=<?= $u['id_usuario'] ?>" onclick="return confirm('Deseja excluir este usuário ?')">
                    Excluir
                 </a>
             </td>

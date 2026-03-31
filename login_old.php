@@ -1,33 +1,37 @@
 <?php
 session_start();
-ini_set('display_errors',1);
-error_reporting(E_ALL);
-
 require __DIR__ . '/config/database.php';
 
-$erro='';
+$erro = '';
 
-if($_SERVER['REQUEST_METHOD']==='POST'){
-    $email=$_POST['email'] ?? '';
-    $senha=$_POST['senha'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'] ?? '';
+    $senha = $_POST['senha'] ?? '';
 
-    $stmt=$pdo->prepare("SELECT * FROM usuarios WHERE email=?");
-    $stmt->execute([$email]);
-    $user=$stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare(
+        "SELECT id_usuario, nome_usuario, perfil, senha
+         FROM usuarios
+         WHERE email = :email
+         limit 1"
+    );
 
-    if($user && password_verify($senha,$user['senha'])){
-        $_SESSION['id_usuario']=$user['id_usuario'];
-        $_SESSION['nome']=$user['nome_usuario'];
-        $_SESSION['perfil']=$user['perfil'];
+    $stmt->bindParam(':email', $email);
+    $stmt->execute();
 
-        header("Location: index.php");
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($senha, $user['senha'])) {
+        $_SESSION['usuario_id'] = $user['id_usuario'];
+        $_SESSION['nome'] = $user['nome_usuario'];
+        $_SESSION['perfil'] = $user['perfil'];
+
+        header("Location: " . BASE_URL . "index.php");
         exit;
-    }else{
-        $erro="Usuário ou senha inválidos";
+    } else {
+        $erro = "Usuário ou senha inválidos";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>

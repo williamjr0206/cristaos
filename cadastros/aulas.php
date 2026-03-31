@@ -1,11 +1,10 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+ob_start();
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
-require __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
+require __DIR__ . '/../includes/menu.php';
 
 /* =====================
    SALVAR / EDITAR
@@ -29,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     id_curso = :curso
                 WHERE id_aula = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO aulas (data_aula, nome_da_aula, id_evento, id_curso)
@@ -45,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->execute();
 
-    header("Location: aulas.php");
+    header("Location: " . BASE_URL . "cadastros/aulas.php");
     exit;
 }
 
@@ -61,7 +60,7 @@ if (isset($_GET['delete'])) {
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header("Location: aulas.php");
+    header("Location: " . BASE_URL . "cadastros/aulas.php");
     exit;
 }
 
@@ -186,10 +185,10 @@ $aulas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($a['evento']) ?></td>
             <td><?= htmlspecialchars($a['curso']) ?></td>
             <td>
-                <a href="aulas.php?edit=<?= $a['id_aula'] ?>">Editar</a>
-                <a href="aulas.php?delete=<?= $a['id_aula'] ?>"
-                   onclick="return confirm('Deseja excluir esta Aula?')">
-                   Excluir
+                <a href="<?= BASE_URL ?>cadastros/aulas.php?edit=<?= $a['id_aula'] ?>">Editar</a>
+                <a href="<?= BASE_URL ?>cadastros/aulas.php?delete=<?= $a['id_aula'] ?>"
+                onclick="return confirm('Deseja excluir esta Aula?')">
+                Excluir
                 </a>
             </td>
         </tr>

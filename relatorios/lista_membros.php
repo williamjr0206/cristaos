@@ -3,23 +3,22 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
 require __DIR__ . '/../config/auth.php';
 verificaAcesso();
+require __DIR__ . '/../includes/menu.php';
 
 /* =====================
    LISTAR
 ===================== */
-$stmt = $pdo -> query("SELECT * FROM membros order by nome_do_membro");
-$membros = $stmt -> fetchAll(PDO::FETCH_ASSOC);
-
+$stmt = $pdo->query("SELECT * FROM membros ORDER BY nome_do_membro");
+$membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Eventos</title>
+    <title>Lista de Membros</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
@@ -34,7 +33,7 @@ $membros = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 
 <table>
     <tr>
-        <th>Nome do Membro:</th>
+        <th>Nome do Membro</th>
         <th>Id do Membro</th>
     </tr>
 
@@ -42,11 +41,9 @@ $membros = $stmt -> fetchAll(PDO::FETCH_ASSOC);
         <tr>
             <td><?= htmlspecialchars($m['nome_do_membro']) ?></td>
             <td><?= htmlspecialchars($m['id_membro']) ?></td>
-        <td>
         </tr>
     <?php endforeach; ?>
 </table>
 
 </body>
 </html>
-        

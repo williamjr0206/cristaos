@@ -1,12 +1,12 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ob_start();
 
 require __DIR__ . '/../config/database.php';
-require __DIR__ . '/../includes/menu.php';
-require __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
-
+require __DIR__ . '/../includes/menu.php';
 /* =====================
    SALVAR / EDITAR
 ===================== */
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->execute();
-    header("Location: tipo.php");
+    header("Location: " . BASE_URL . "cadastros/tipo.php");
     exit;
 }
 
@@ -50,7 +50,7 @@ if (isset($_GET['delete'])) {
     $stmt->bindParam(':id',$id);
     $stmt->execute();
 
-    header("Location: tipo.php");
+    header("Location: " . BASE_URL . "cadastros/tipo.php");
     exit;
 }
 

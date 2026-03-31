@@ -1,48 +1,82 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-//    session_start();
+    session_start();
 }
 
-function verificaAcesso()
+function usuarioLogado(): bool
 {
-    if (!isset($_SESSION['usuario_id'])) {
- //       header("Location: ../login.php");
+    return !empty($_SESSION['id_usuario']);
+}
+
+function perfilAtual(): string
+{
+    return strtoupper($_SESSION['perfil'] ?? '');
+}
+
+function nomeUsuarioAtual(): string
+{
+    return $_SESSION['nome'] ?? ($_SESSION['nome_usuario'] ?? 'Usuário');
+}
+
+function verificaAcesso(): void
+{
+    if (!usuarioLogado()) {
+        header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'login.php');
         exit;
     }
+}
 
-    $perfil = $_SESSION['perfil'];
-    $pagina = basename($_SERVER['PHP_SELF']);
+function verificaPerfil(array $perfisPermitidos): void
+{
+    verificaAcesso();
 
-    // ADMIN pode tudo
-    if ($perfil === 'ADMIN') {
-        return;
+    $perfil = perfilAtual();
+    $perfisPermitidos = array_map('strtoupper', $perfisPermitidos);
+
+    if (!in_array($perfil, $perfisPermitidos, true)) {
+        http_response_code(403);
+        echo '<!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <title>Acesso negado</title>
+            <style>
+                body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:40px}
+                .box{max-width:700px;margin:0 auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+                h2{margin-top:0;color:#c0392b}
+                a{display:inline-block;margin-top:15px;text-decoration:none;background:#2c3e50;color:#fff;padding:10px 16px;border-radius:8px}
+            </style>
+        </head>
+        <body>
+            <div class="box">
+                <h2>Acesso negado</h2>
+                <p>Seu perfil não possui permissão para acessar esta página.</p>
+                <p><strong>Perfil atual:</strong> ' . htmlspecialchars($perfil) . '</p>
+                <a href="' . (defined('BASE_URL') ? BASE_URL : '/') . 'index.php">Voltar ao início</a>
+            </div>
+        </body>
+        </html>';
+        exit;
     }
+}
 
-    // Permissões por perfil
+function temPermissao(string $chave): bool
+{
+    $perfil = perfilAtual();
+
     $permissoes = [
-
-        'OPERADOR' => [
-            'visitantes.php',
-            'presencas.php',
-            'presencas_lote.php'
+        'ADMIN' => [
+            'dashboard', 'usuarios', 'membros', 'visitantes', 'igrejas', 'cargos',
+            'tipo', 'cursos', 'eventos', 'aulas', 'professores', 'presencas',
+            'relatorios', 'consultas', 'sair'
         ],
-
+        'OPERADOR' => [
+            'dashboard', 'visitantes', 'presencas', 'sair'
+        ],
         'LIDER' => [
-            'aulas.php',
-            'cursos.php',
-            'presencas.php',
-            'presencas_lote.php',
-            'aniversariantes.php',
-            'lista_membros.php'
-        ]
-
+            'dashboard', 'aulas', 'cursos', 'presencas', 'relatorios', 'consultas', 'sair'
+        ],
     ];
 
-    if (
-        !isset($permissoes[$perfil]) ||
-        !in_array($pagina, $permissoes[$perfil])
-    ) {
-        echo "⛔ Acesso não autorizado.";
-        exit;
-    }
+    return in_array($chave, $permissoes[$perfil] ?? [], true);
 }
