@@ -68,13 +68,14 @@ function temPermissao(string $chave): bool
         'ADMIN' => [
             'dashboard', 'usuarios', 'membros', 'visitantes', 'igrejas', 'cargos',
             'tipo', 'cursos', 'eventos', 'aulas', 'professores', 'presencas',
-            'relatorios', 'consultas', 'sair'
+            'relatorios', 'consultas', 'lista_de_presencas', 'boas_vindas', 'sair'
         ],
         'OPERADOR' => [
-            'dashboard', 'visitantes', 'presencas', 'sair'
+            'dashboard', 'visitantes', 'presencas', 'boas_vindas', 'sair'
         ],
         'LIDER' => [
-            'dashboard', 'aulas', 'cursos', 'presencas', 'relatorios', 'consultas', 'sair'
+            'dashboard', 'aulas', 'cursos', 'presencas', 'relatorios',
+            'consultas', 'lista_de_presencas', 'boas_vindas', 'sair'
         ],
     ];
 

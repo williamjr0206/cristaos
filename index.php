@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require __DIR__ . '/config/database.php';
 require __DIR__ . '/config/auth.php';
 
@@ -6,19 +9,23 @@ verificaAcesso();
 
 $baseUrl = BASE_URL;
 $perfil = perfilAtual();
+
 $cards = [
-    ['chave' => 'membros',    'titulo' => 'Membros',       'texto' => 'Cadastro e manutenção dos membros.',          'link' => $baseUrl . 'cadastros/membros.php'],
-    ['chave' => 'visitantes', 'titulo' => 'Visitantes',    'texto' => 'Cadastro de visitantes e acompanhamentos.',  'link' => $baseUrl . 'cadastros/visitantes.php'],
-    ['chave' => 'igrejas',    'titulo' => 'Igrejas',       'texto' => 'Cadastro das igrejas vinculadas.',           'link' => $baseUrl . 'cadastros/igrejas.php'],
-    ['chave' => 'cargos',     'titulo' => 'Cargos',        'texto' => 'Cadastro de cargos e funções.',              'link' => $baseUrl . 'cadastros/cargos.php'],
-    ['chave' => 'tipo',       'titulo' => 'Tipo',          'texto' => 'Tipos de membros da igreja.',                'link' => $baseUrl . 'cadastros/tipo.php'],
-    ['chave' => 'cursos',     'titulo' => 'Cursos',        'texto' => 'Cadastro dos cursos da EDB.',                'link' => $baseUrl . 'cadastros/cursos.php'],
-    ['chave' => 'eventos',    'titulo' => 'Eventos',       'texto' => 'Cadastro de eventos e reuniões.',            'link' => $baseUrl . 'cadastros/eventos.php'],
-    ['chave' => 'aulas',      'titulo' => 'Aulas',         'texto' => 'Registro das aulas ministradas.',            'link' => $baseUrl . 'cadastros/aulas.php'],
-    ['chave' => 'professores','titulo' => 'Professores',   'texto' => 'Cadastro dos professores.',                  'link' => $baseUrl . 'cadastros/professores.php'],
-    ['chave' => 'presencas',  'titulo' => 'Presenças',     'texto' => 'Lançamento de presenças em lote.',           'link' => $baseUrl . 'cadastros/presencas_lote.php'],
-    ['chave' => 'usuarios',   'titulo' => 'Usuários',      'texto' => 'Administração de usuários do sistema.',      'link' => $baseUrl . 'cadastros/usuarios.php'],
-    ['chave' => 'relatorios', 'titulo' => 'Relatórios',    'texto' => 'Consultas e relatórios do sistema.',         'link' => $baseUrl . 'relatorios/aniversariantes.php'],
+    ['chave' => 'membros',     'titulo' => 'Membros',            'texto' => 'Cadastro e manutenção dos membros.',                    'link' => $baseUrl . 'cadastros/membros.php'],
+    ['chave' => 'visitantes',  'titulo' => 'Visitantes',         'texto' => 'Cadastro de visitantes e acompanhamentos.',            'link' => $baseUrl . 'cadastros/visitantes.php'],
+    ['chave' => 'igrejas',     'titulo' => 'Igrejas',            'texto' => 'Cadastro das igrejas vinculadas.',                     'link' => $baseUrl . 'cadastros/igrejas.php'],
+    ['chave' => 'cargos',      'titulo' => 'Cargos',             'texto' => 'Cadastro de cargos e funções.',                        'link' => $baseUrl . 'cadastros/cargos.php'],
+    ['chave' => 'tipo',        'titulo' => 'Tipo',               'texto' => 'Tipos de membros da igreja.',                          'link' => $baseUrl . 'cadastros/tipo.php'],
+    ['chave' => 'cursos',      'titulo' => 'Cursos',             'texto' => 'Cadastro dos cursos da EDB.',                          'link' => $baseUrl . 'cadastros/cursos.php'],
+    ['chave' => 'eventos',     'titulo' => 'Eventos',            'texto' => 'Cadastro de eventos e reuniões.',                      'link' => $baseUrl . 'cadastros/eventos.php'],
+    ['chave' => 'aulas',       'titulo' => 'Aulas',              'texto' => 'Registro das aulas ministradas.',                      'link' => $baseUrl . 'cadastros/aulas.php'],
+    ['chave' => 'professores', 'titulo' => 'Professores',        'texto' => 'Cadastro dos professores.',                            'link' => $baseUrl . 'cadastros/professores.php'],
+    ['chave' => 'presencas',   'titulo' => 'Presenças',          'texto' => 'Lançamento de presenças em lote.',                     'link' => $baseUrl . 'cadastros/presencas_lote.php'],
+    ['chave' => 'usuarios',    'titulo' => 'Usuários',           'texto' => 'Administração de usuários do sistema.',                'link' => $baseUrl . 'cadastros/usuarios.php'],
+    ['chave' => 'relatorios',  'titulo' => 'Aniversariantes',    'texto' => 'Relatório de aniversariantes.',                        'link' => $baseUrl . 'relatorios/aniversariantes.php'],
+    ['chave' => 'relatorios',  'titulo' => 'Lista de Membros',   'texto' => 'Relação geral dos membros cadastrados.',               'link' => $baseUrl . 'relatorios/lista_membros.php'],
+    ['chave' => 'lista_de_presencas', 'titulo' => 'Lista de Presenças', 'texto' => 'Relatório escolar de presença e falta por evento.', 'link' => $baseUrl . 'relatorios/lista_de_presencas.php'],
+    ['chave' => 'boas_vindas', 'titulo' => 'Boas-vindas',        'texto' => 'Carta de boas-vindas para visitantes.',                'link' => $baseUrl . 'relatorios/boas_vindas.php'],
 ];
 ?>
 <!DOCTYPE html>

@@ -20,13 +20,18 @@ $menu = [
         ['chave' => 'aulas',       'titulo' => 'Aulas',       'link' => $baseUrl . 'cadastros/aulas.php'],
         ['chave' => 'professores', 'titulo' => 'Professores', 'link' => $baseUrl . 'cadastros/professores.php'],
     ],
+
     'Ferramentas' => [
-        ['chave' => 'presencas', 'titulo' => 'Presenças', 'link' => $baseUrl . 'cadastros/presencas_lote.php'],
+        ['chave' => 'presencas',    'titulo' => 'Presenças',    'link' => $baseUrl . 'cadastros/presencas_lote.php'],
+        ['chave' => 'boas_vindas',  'titulo' => 'Boas-vindas',  'link' => $baseUrl . 'relatorios/boas_vindas.php'],
     ],
+
     'Relatórios' => [
-        ['chave' => 'relatorios', 'titulo' => 'Aniversariantes', 'link' => $baseUrl . 'relatorios/aniversariantes.php'],
-        ['chave' => 'relatorios', 'titulo' => 'Lista de Membros', 'link' => $baseUrl . 'relatorios/lista_membros.php'],
+        ['chave' => 'relatorios',         'titulo' => 'Aniversariantes',    'link' => $baseUrl . 'relatorios/aniversariantes.php'],
+        ['chave' => 'relatorios',         'titulo' => 'Lista de Membros',   'link' => $baseUrl . 'relatorios/lista_membros.php'],
+        ['chave' => 'lista_de_presencas', 'titulo' => 'Lista de Presenças', 'link' => $baseUrl . 'relatorios/lista_de_presencas.php'],
     ],
+
     'Sessão' => [
         ['chave' => 'sair', 'titulo' => 'Sair', 'link' => $baseUrl . 'logout.php'],
     ],

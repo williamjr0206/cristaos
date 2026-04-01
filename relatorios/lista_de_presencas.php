@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 require __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
+verificaPerfil(['ADMIN', 'LIDER']);
 require __DIR__ . '/../includes/menu.php';
 
 /*
@@ -38,13 +39,11 @@ $evento_descricao = '';
 
 if (!empty($id_evento)) {
 
-    // descrição do evento
     $stmtEvento = $pdo->prepare("SELECT descricao FROM eventos WHERE id_evento = :id_evento");
     $stmtEvento->bindParam(':id_evento', $id_evento);
     $stmtEvento->execute();
     $evento_descricao = $stmtEvento->fetchColumn();
 
-    // aulas do evento
     $sqlAulas = "
         SELECT id_aula, data_aula, nome_da_aula
         FROM aulas
@@ -77,7 +76,7 @@ if (!empty($id_evento)) {
 
     /*
     =========================================================
-    MEMBROS QUE PARTICIPARAM DO EVENTO
+    MEMBROS DO EVENTO
     =========================================================
     */
     $sqlMembros = "
