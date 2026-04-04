@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // =====================
 // LISTAS
 // =====================
-$membros = $pdo->query("SELECT id_membro, nome_do_membro, id_tipo, id_cargo FROM membros ORDER BY nome_do_membro")->fetchAll(PDO::FETCH_ASSOC);
+$membros = $pdo->query("SELECT id_membro, nome_do_membro, id_tipo, id_cargo FROM membros WHERE ativo = 1 ORDER BY nome_do_membro")->fetchAll(PDO::FETCH_ASSOC);
 $aulas = $pdo->query("SELECT id_aula, nome_da_aula FROM aulas ORDER BY nome_da_aula")->fetchAll(PDO::FETCH_ASSOC);
 $professores = $pdo->query("SELECT id_professor, nome_do_professor FROM professores ORDER BY nome_do_professor")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -194,6 +194,18 @@ function marcarTodos() {
 function desmarcarTodos() {
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
 }
+</script>
+
+<script>
+// mantém sessão viva
+setInterval(function() {
+    fetch('../keepalive.php');
+}, 300000);
+
+// alerta usuário
+setTimeout(function(){
+    alert("⚠️ Sua sessão está prestes a expirar. Salve os dados!");
+}, 1200000);
 </script>
 
 </body>

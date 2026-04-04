@@ -1,4 +1,8 @@
 <?php
+
+ini_set('session.gc_maxlifetime', 7200); // 2 horas
+session_set_cookie_params(7200);
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

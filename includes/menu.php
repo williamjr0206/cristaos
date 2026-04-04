@@ -4,7 +4,6 @@ require_once __DIR__ . '/../config/database.php';
 if (!function_exists('nomeUsuarioAtual')) {
     require_once __DIR__ . '/../config/auth.php';
 }
-
 $baseUrl = BASE_URL;
 
 $menu = [

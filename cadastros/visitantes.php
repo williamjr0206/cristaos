@@ -1,11 +1,12 @@
 <?php
-ob_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ob_start();
 
 require __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
+
 require __DIR__ . '/../includes/menu.php';
 /* =====================
    SALVAR / EDITAR
@@ -19,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $telefone    = $_POST['telefone'] ?? '';
     $email       = $_POST['email'] ?? '';
     $cidade      = $_POST['cidade'] ?? '';
+    $endereco    = $_POST['endereco'];
     $oracao      = $_POST['oracao'] ?? '';
     $cadastrante = $_POST['cadastrante'] ?? '';
 
@@ -30,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     telefone = :telefone,
                     email = :email,
                     cidade = :cidade,
+                    endereco = :endereco,
                     oracao = :oracao,
                     cadastrante = :cadastrante
                 WHERE id_visitante = :id";
@@ -38,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO visitantes 
-                    (nome, sexo, id_membro, telefone, email, cidade, oracao, cadastrante)
+                    (nome, sexo, id_membro, telefone, email, cidade, endereco, oracao, cadastrante)
                 VALUES 
-                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :oracao, :cadastrante)";
+                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :endereco, :oracao, :cadastrante)";
 
         $stmt = $pdo->prepare($sql);
     }
@@ -51,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':telefone', $telefone);
     $stmt->bindParam(':email', $email);
     $stmt->bindParam(':cidade', $cidade);
+    $stmt->bindParam(':endereco',$endereco);
     $stmt->bindParam(':oracao', $oracao);
     $stmt->bindParam(':cadastrante', $cadastrante);
 
@@ -111,6 +115,7 @@ $stmt = $pdo->query("
         v.telefone,
         v.email,
         v.cidade,
+        v.endereco,
         v.oracao,
         v.cadastrante
     FROM visitantes v
@@ -177,6 +182,10 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <label>Cidade</label>
 <input name="cidade" value="<?= htmlspecialchars($editar['cidade'] ?? '') ?>">
 
+<label>Endereço</label>
+<input name="endereco" value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
+
+
 <label>Pedido de Oração</label>
 <input name="oracao" value="<?= htmlspecialchars($editar['oracao'] ?? '') ?>">
 
@@ -209,6 +218,7 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <th>Telefone</th>
     <th>Email</th>
     <th>Cidade</th>
+    <th>Endereço</th>
     <th>Oração</th>
     <th>Ações</th>
 </tr>
@@ -221,6 +231,7 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <td><?= htmlspecialchars($v['telefone']) ?></td>
     <td><?= htmlspecialchars($v['email']) ?></td>
     <td><?= htmlspecialchars($v['cidade']) ?></td>
+    <td><?= htmlspecialchars($v['endereco']) ?></td>
     <td><?= htmlspecialchars($v['oracao']) ?></td>
     <td>
         <a href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
