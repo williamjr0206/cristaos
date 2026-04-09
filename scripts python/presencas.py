@@ -4,14 +4,14 @@ import mysql.connector
 # =========================
 # CONFIGURAÇÕES
 # =========================
-arquivo_excel = r'C:\Users\William\OneDrive\IPI - Muzambinho\ebd.xlsx'
+arquivo_excel = r''
 aba = 'presenças'
 
 config_mysql = {
-    'host': 'localhost',
-    'user': 'root',
+    'host': '',
+    'user': '',
     'password': '',
-    'database': 'szjw_cristaos'
+    'database': ''
 }
 
 tabela = 'presencas'

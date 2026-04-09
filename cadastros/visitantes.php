@@ -8,25 +8,38 @@ require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
 
 require __DIR__ . '/../includes/menu.php';
+
+/* =====================
+   DATA FIXA PARA O FORM
+===================== */
+$data_fixa = isset($editar['data_cadastro'])
+    ? $editar['data_cadastro']
+    : date('Y-m-d H:i:s');
+
 /* =====================
    SALVAR / EDITAR
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id          = $_POST['id'] ?? null;
-    $nome        = $_POST['nome'] ?? '';
-    $sexo        = $_POST['sexo'] ?? '';
-    $tipomembro  = $_POST['id_tipomembro'] ?? '';
-    $telefone    = $_POST['telefone'] ?? '';
-    $email       = $_POST['email'] ?? '';
-    $cidade      = $_POST['cidade'] ?? '';
-    $endereco    = $_POST['endereco'];
-    $oracao      = $_POST['oracao'] ?? '';
-    $cadastrante = $_POST['cadastrante'] ?? '';
+    $id            = $_POST['id'] ?? null;
+    $data_fixa     = !empty($_POST['data_cadastro'])
+        ? str_replace('T', ' ', $_POST['data_cadastro']) . ':00'
+        : date('Y-m-d H:i:s');
+
+    $nome          = $_POST['nome'] ?? '';
+    $sexo          = $_POST['sexo'] ?? '';
+    $tipomembro    = $_POST['id_tipomembro'] ?? '';
+    $telefone      = $_POST['telefone'] ?? '';
+    $email         = $_POST['email'] ?? '';
+    $cidade        = $_POST['cidade'] ?? '';
+    $endereco      = $_POST['endereco'] ?? '';
+    $oracao        = $_POST['oracao'] ?? '';
+    $cadastrante   = $_POST['cadastrante'] ?? '';
 
     if ($id) {
         $sql = "UPDATE visitantes SET 
                     nome = :nome,
+                    data_cadastro = :data_cadastro,
                     sexo = :sexo,
                     id_membro = :tipomembro,
                     telefone = :telefone,
@@ -41,9 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO visitantes 
-                    (nome, sexo, id_membro, telefone, email, cidade, endereco, oracao, cadastrante)
+                    (nome, sexo, id_membro, telefone, email, cidade, endereco, oracao, data_cadastro, cadastrante)
                 VALUES 
-                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :endereco, :oracao, :cadastrante)";
+                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :endereco, :oracao, :data_cadastro, :cadastrante)";
 
         $stmt = $pdo->prepare($sql);
     }
@@ -54,8 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':telefone', $telefone);
     $stmt->bindParam(':email', $email);
     $stmt->bindParam(':cidade', $cidade);
-    $stmt->bindParam(':endereco',$endereco);
+    $stmt->bindParam(':endereco', $endereco);
     $stmt->bindParam(':oracao', $oracao);
+    $stmt->bindParam(':data_cadastro', $data_fixa);
     $stmt->bindParam(':cadastrante', $cadastrante);
 
     $stmt->execute();
@@ -92,6 +106,10 @@ if (isset($_GET['edit'])) {
     $stmt->bindParam(':id', $id);
     $stmt->execute();
     $editar = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($editar && !empty($editar['data_cadastro'])) {
+        $data_fixa = $editar['data_cadastro'];
+    }
 }
 
 /* =====================
@@ -108,19 +126,20 @@ $membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);
 ===================== */
 $stmt = $pdo->query("
     SELECT 
-        v.id_visitante,
-        v.nome,
-        v.sexo,
-        t.descricao,
-        v.telefone,
-        v.email,
-        v.cidade,
-        v.endereco,
-        v.oracao,
-        v.cadastrante
-    FROM visitantes v
-    INNER JOIN tipo t ON v.id_membro = t.id_tipo
-    ORDER BY v.nome
+        visitantes.id_visitante,
+        visitantes.nome,
+        visitantes.sexo,
+        tipo.descricao,
+        visitantes.telefone,
+        visitantes.email,
+        visitantes.cidade,
+        visitantes.endereco,
+        visitantes.oracao,
+        visitantes.cadastrante,
+        visitantes.data_cadastro
+    FROM visitantes 
+    INNER JOIN tipo ON visitantes.id_membro = tipo.id_tipo
+    ORDER BY visitantes.nome
 ");
 
 $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -149,6 +168,11 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <form method="post">
 
 <input type="hidden" name="id" value="<?= $editar['id_visitante'] ?? '' ?>">
+
+<label>Data Cadastro</label>
+<input type="datetime-local" name="data_cadastro"
+    value="<?= date('Y-m-d\TH:i', strtotime($data_fixa)) ?>"
+    required>
 
 <label>Nome</label>
 <input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
@@ -185,7 +209,6 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <label>Endereço</label>
 <input name="endereco" value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
 
-
 <label>Pedido de Oração</label>
 <input name="oracao" value="<?= htmlspecialchars($editar['oracao'] ?? '') ?>">
 
@@ -213,6 +236,7 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <table border="1">
 <tr>
     <th>Nome</th>
+    <th>Data Cadastro</th>
     <th>Sexo</th>
     <th>Tipo</th>
     <th>Telefone</th>
@@ -226,6 +250,7 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php foreach ($visitantes as $v): ?>
 <tr>
     <td><?= htmlspecialchars($v['nome']) ?></td>
+    <td><?= htmlspecialchars($v['data_cadastro']) ?></td>
     <td><?= htmlspecialchars($v['sexo']) ?></td>
     <td><?= htmlspecialchars($v['descricao']) ?></td>
     <td><?= htmlspecialchars($v['telefone']) ?></td>

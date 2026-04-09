@@ -5,15 +5,15 @@ import numpy as np
 # =========================
 # CONFIG
 # =========================
-arquivo_excel = r'C:\Users\William\OneDrive\IPI - Muzambinho\ebd.xlsx'
+arquivo_excel = r''
 aba = 'membros'
 tabela = 'membros'
 
 conexao = mysql.connector.connect(
-    host='localhost',
-    user='root',
+    host='',
+    user='',
     password='',
-    database='szjw_cristaos'
+    database=''
 )
 
 cursor = conexao.cursor()
