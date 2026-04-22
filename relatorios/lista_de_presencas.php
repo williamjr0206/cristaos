@@ -29,21 +29,34 @@ $eventos = $stmtEventos->fetchAll(PDO::FETCH_ASSOC);
 
 /*
 =========================================================
-BUSCAR AULAS / DATAS DO EVENTO
+VARIÁVEIS
 =========================================================
 */
 $datas_aulas = [];
-$presencas_por_membro = [];
-$membros = [];
+$participantes = [];
+$presencas_por_participante = [];
 $evento_descricao = '';
+$totais_por_aula = [];
+$total_membros = 0;
+$total_visitantes = 0;
 
 if (!empty($id_evento)) {
 
+    /*
+    =========================================================
+    EVENTO
+    =========================================================
+    */
     $stmtEvento = $pdo->prepare("SELECT descricao FROM eventos WHERE id_evento = :id_evento");
     $stmtEvento->bindParam(':id_evento', $id_evento);
     $stmtEvento->execute();
     $evento_descricao = $stmtEvento->fetchColumn();
 
+    /*
+    =========================================================
+    BUSCAR AULAS / DATAS DO EVENTO
+    =========================================================
+    */
     $sqlAulas = "
         SELECT id_aula, data_aula, nome_da_aula
         FROM aulas
@@ -72,6 +85,7 @@ if (!empty($id_evento)) {
             'data_aula' => $a['data_aula'],
             'nome_da_aula' => $a['nome_da_aula']
         ];
+        $totais_por_aula[$a['id_aula']] = 0;
     }
 
     /*
@@ -106,9 +120,20 @@ if (!empty($id_evento)) {
     $stmtMembros->execute();
     $membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);
 
+    foreach ($membros as $m) {
+        $chave = 'M_' . $m['id_membro'];
+        $participantes[$chave] = [
+            'tipo' => 'MEMBRO',
+            'id'   => $m['id_membro'],
+            'nome' => $m['nome_do_membro']
+        ];
+    }
+
+    $total_membros = count($membros);
+
     /*
     =========================================================
-    PRESENÇAS
+    PRESENÇAS DOS MEMBROS
     =========================================================
     */
     $sqlPresencas = "
@@ -136,8 +161,78 @@ if (!empty($id_evento)) {
     $presencas = $stmtPresencas->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($presencas as $p) {
-        $presencas_por_membro[$p['id_membro']][$p['id_aula']] = true;
+        $chave = 'M_' . $p['id_membro'];
+        $presencas_por_participante[$chave][$p['id_aula']] = true;
+
+        if (isset($totais_por_aula[$p['id_aula']])) {
+            $totais_por_aula[$p['id_aula']]++;
+        }
     }
+
+    /*
+    =========================================================
+    VISITANTES DO EVENTO
+    =========================================================
+    */
+    $sqlVisitantes = "
+        SELECT
+            v.id_visitante,
+            v.nome,
+            v.data_cadastro
+        FROM visitantes v
+        WHERE v.id_evento = :id_evento
+    ";
+
+    if (!empty($data_inicial) && !empty($data_final)) {
+        $sqlVisitantes .= " AND DATE(v.data_cadastro) BETWEEN :data_inicial AND :data_final ";
+    }
+
+    $sqlVisitantes .= " ORDER BY v.nome";
+
+    $stmtVisitantes = $pdo->prepare($sqlVisitantes);
+    $stmtVisitantes->bindParam(':id_evento', $id_evento);
+
+    if (!empty($data_inicial) && !empty($data_final)) {
+        $stmtVisitantes->bindParam(':data_inicial', $data_inicial);
+        $stmtVisitantes->bindParam(':data_final', $data_final);
+    }
+
+    $stmtVisitantes->execute();
+    $visitantes = $stmtVisitantes->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($visitantes as $v) {
+        $chave = 'V_' . $v['id_visitante'];
+        $participantes[$chave] = [
+            'tipo' => 'VISITANTE',
+            'id'   => $v['id_visitante'],
+            'nome' => $v['nome']
+        ];
+
+        $dataVisitante = date('Y-m-d', strtotime($v['data_cadastro']));
+
+        foreach ($datas_aulas as $id_aula => $dadosAula) {
+            $dataAula = date('Y-m-d', strtotime($dadosAula['data_aula']));
+
+            if ($dataVisitante === $dataAula) {
+                $presencas_por_participante[$chave][$id_aula] = true;
+
+                if (isset($totais_por_aula[$id_aula])) {
+                    $totais_por_aula[$id_aula]++;
+                }
+            }
+        }
+    }
+
+    $total_visitantes = count($visitantes);
+
+    /*
+    =========================================================
+    ORDENAR TODOS PELO NOME
+    =========================================================
+    */
+    uasort($participantes, function ($a, $b) {
+        return strcasecmp($a['nome'], $b['nome']);
+    });
 }
 ?>
 <!DOCTYPE html>
@@ -223,7 +318,7 @@ if (!empty($id_evento)) {
         td.nome {
             text-align: left;
             font-weight: bold;
-            min-width: 220px;
+            min-width: 240px;
         }
 
         .presente {
@@ -233,6 +328,12 @@ if (!empty($id_evento)) {
 
         .falta {
             background: #f8d7da;
+            font-weight: bold;
+        }
+
+        .neutro {
+            background: #f4f4f4;
+            color: #777;
             font-weight: bold;
         }
 
@@ -248,6 +349,19 @@ if (!empty($id_evento)) {
             background: #1abc9c;
             color: #fff;
             cursor: pointer;
+        }
+
+        .tipo-participante {
+            font-size: 11px;
+            display: block;
+            margin-top: 4px;
+            color: #555;
+            font-weight: normal;
+        }
+
+        .linha-total {
+            background: #eef5ff;
+            font-weight: bold;
         }
 
         @media print {
@@ -301,11 +415,14 @@ if (!empty($id_evento)) {
             <p>Período: <?= date('d/m/Y', strtotime($data_inicial)) ?> até <?= date('d/m/Y', strtotime($data_final)) ?></p>
         <?php endif; ?>
         <p>Total de encontros/aulas: <?= count($datas_aulas) ?></p>
+        <p>Total de membros: <?= $total_membros ?></p>
+        <p>Total de visitantes: <?= $total_visitantes ?></p>
+        <p>Total geral de participantes: <?= count($participantes) ?></p>
     </div>
 
     <table>
         <tr>
-            <th>Membro</th>
+            <th>Participante</th>
             <?php foreach ($datas_aulas as $id_aula => $dadosAula): ?>
                 <th>
                     <?= date('d/m', strtotime($dadosAula['data_aula'])) ?><br>
@@ -316,25 +433,45 @@ if (!empty($id_evento)) {
             <th>Faltas</th>
         </tr>
 
-        <?php foreach ($membros as $m): ?>
+        <?php foreach ($participantes as $chave => $p): ?>
             <?php
                 $total_presencas = 0;
                 $total_faltas = 0;
             ?>
             <tr>
-                <td class="nome"><?= htmlspecialchars($m['nome_do_membro']) ?></td>
+                <td class="nome">
+                    <?= htmlspecialchars($p['nome']) ?>
+                    <span class="tipo-participante">
+                        <?= $p['tipo'] === 'MEMBRO' ? 'Membro' : 'Visitante' ?>
+                    </span>
+                </td>
 
                 <?php foreach ($datas_aulas as $id_aula => $dadosAula): ?>
                     <?php
-                        $presente = !empty($presencas_por_membro[$m['id_membro']][$id_aula]);
-                        if ($presente) {
-                            $total_presencas++;
+                        $presente = !empty($presencas_por_participante[$chave][$id_aula]);
+
+                        if ($p['tipo'] === 'MEMBRO') {
+                            if ($presente) {
+                                $total_presencas++;
+                            } else {
+                                $total_faltas++;
+                            }
+
+                            $classe = $presente ? 'presente' : 'falta';
+                            $texto = $presente ? 'P' : 'F';
                         } else {
-                            $total_faltas++;
+                            if ($presente) {
+                                $total_presencas++;
+                                $classe = 'presente';
+                                $texto = 'P';
+                            } else {
+                                $classe = 'neutro';
+                                $texto = '-';
+                            }
                         }
                     ?>
-                    <td class="<?= $presente ? 'presente' : 'falta' ?>">
-                        <?= $presente ? 'P' : 'F' ?>
+                    <td class="<?= $classe ?>">
+                        <?= $texto ?>
                     </td>
                 <?php endforeach; ?>
 
@@ -342,10 +479,19 @@ if (!empty($id_evento)) {
                 <td><?= $total_faltas ?></td>
             </tr>
         <?php endforeach; ?>
+
+        <tr class="linha-total">
+            <td>Total por aula</td>
+            <?php foreach ($datas_aulas as $id_aula => $dadosAula): ?>
+                <td><?= $totais_por_aula[$id_aula] ?? 0 ?></td>
+            <?php endforeach; ?>
+            <td colspan="2">Membros + Visitantes</td>
+        </tr>
     </table>
 
     <div class="resumo">
-        <p><strong>Legenda:</strong> P = Presença | F = Falta</p>
+        <p><strong>Legenda:</strong> P = Presença | F = Falta | - = não se aplica</p>
+        <p><strong>Observação:</strong> os visitantes são relacionados ao evento pelo campo <code>id_evento</code> e marcados na aula cuja data coincide com a data de cadastro.</p>
     </div>
 
 <?php elseif (!empty($id_evento)): ?>

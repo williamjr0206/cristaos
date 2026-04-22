@@ -10,9 +10,23 @@ verificaAcesso();
 require __DIR__ . '/../includes/menu.php';
 
 /* =====================
+   EDITAR (carrega antes do form)
+===================== */
+$editar = null;
+
+if (isset($_GET['edit'])) {
+    $id = $_GET['edit'];
+
+    $stmt = $pdo->prepare("SELECT * FROM visitantes WHERE id_visitante = :id");
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+/* =====================
    DATA FIXA PARA O FORM
 ===================== */
-$data_fixa = isset($editar['data_cadastro'])
+$data_fixa = isset($editar['data_cadastro']) && !empty($editar['data_cadastro'])
     ? $editar['data_cadastro']
     : date('Y-m-d H:i:s');
 
@@ -29,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome          = $_POST['nome'] ?? '';
     $sexo          = $_POST['sexo'] ?? '';
     $tipomembro    = $_POST['id_tipomembro'] ?? '';
+    $id_evento     = $_POST['id_evento'] ?? null;
     $telefone      = $_POST['telefone'] ?? '';
     $email         = $_POST['email'] ?? '';
     $cidade        = $_POST['cidade'] ?? '';
@@ -36,12 +51,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $oracao        = $_POST['oracao'] ?? '';
     $cadastrante   = $_POST['cadastrante'] ?? '';
 
+    if ($id_evento === '') {
+        $id_evento = null;
+    }
+
     if ($id) {
         $sql = "UPDATE visitantes SET 
                     nome = :nome,
                     data_cadastro = :data_cadastro,
                     sexo = :sexo,
                     id_membro = :tipomembro,
+                    id_evento = :id_evento,
                     telefone = :telefone,
                     email = :email,
                     cidade = :cidade,
@@ -54,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO visitantes 
-                    (nome, sexo, id_membro, telefone, email, cidade, endereco, oracao, data_cadastro, cadastrante)
+                    (nome, sexo, id_membro, id_evento, telefone, email, cidade, endereco, oracao, data_cadastro, cadastrante)
                 VALUES 
-                    (:nome, :sexo, :tipomembro, :telefone, :email, :cidade, :endereco, :oracao, :data_cadastro, :cadastrante)";
+                    (:nome, :sexo, :tipomembro, :id_evento, :telefone, :email, :cidade, :endereco, :oracao, :data_cadastro, :cadastrante)";
 
         $stmt = $pdo->prepare($sql);
     }
@@ -64,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':nome', $nome);
     $stmt->bindParam(':sexo', $sexo);
     $stmt->bindParam(':tipomembro', $tipomembro);
+    $stmt->bindParam(':id_evento', $id_evento, $id_evento === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
     $stmt->bindParam(':telefone', $telefone);
     $stmt->bindParam(':email', $email);
     $stmt->bindParam(':cidade', $cidade);
@@ -95,24 +116,6 @@ if (isset($_GET['delete'])) {
 }
 
 /* =====================
-   EDITAR
-===================== */
-$editar = null;
-
-if (isset($_GET['edit'])) {
-    $id = $_GET['edit'];
-
-    $stmt = $pdo->prepare("SELECT * FROM visitantes WHERE id_visitante = :id");
-    $stmt->bindParam(':id', $id);
-    $stmt->execute();
-    $editar = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($editar && !empty($editar['data_cadastro'])) {
-        $data_fixa = $editar['data_cadastro'];
-    }
-}
-
-/* =====================
    SELECTS
 ===================== */
 $stmtTipo = $pdo->query("SELECT id_tipo, descricao FROM tipo ORDER BY descricao");
@@ -120,6 +123,9 @@ $tipos = $stmtTipo->fetchAll(PDO::FETCH_ASSOC);
 
 $stmtMembros = $pdo->query("SELECT id_membro, nome_do_membro FROM membros ORDER BY nome_do_membro");
 $membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtEventos = $pdo->query("SELECT id_evento, descricao FROM eventos ORDER BY descricao");
+$eventos = $stmtEventos->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
    LISTAR
@@ -129,7 +135,9 @@ $stmt = $pdo->query("
         visitantes.id_visitante,
         visitantes.nome,
         visitantes.sexo,
-        tipo.descricao,
+        visitantes.id_evento,
+        tipo.descricao AS tipo_descricao,
+        eventos.descricao AS evento_descricao,
         visitantes.telefone,
         visitantes.email,
         visitantes.cidade,
@@ -139,6 +147,7 @@ $stmt = $pdo->query("
         visitantes.data_cadastro
     FROM visitantes 
     INNER JOIN tipo ON visitantes.id_membro = tipo.id_tipo
+    LEFT JOIN eventos ON visitantes.id_evento = eventos.id_evento
     ORDER BY visitantes.nome
 ");
 
@@ -151,14 +160,14 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
 <title>Visitantes</title>
 
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        form { margin-bottom: 30px; }
-        input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
-        table { border-collapse: collapse; width: 100%; }
-        a { margin-right: 10px; }
-
-    </style>
+<style>
+    body { font-family: Arial; margin: 20px; }
+    form { margin-bottom: 30px; }
+    input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    a { margin-right: 10px; }
+</style>
 
 </head>
 <body>
@@ -197,6 +206,17 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endforeach; ?>
 </select>
 
+<label>Evento</label>
+<select name="id_evento" required>
+    <option value="">Selecione</option>
+    <?php foreach ($eventos as $e): ?>
+        <option value="<?= $e['id_evento'] ?>"
+            <?= (isset($editar['id_evento']) && $editar['id_evento'] == $e['id_evento']) ? 'selected' : '' ?>>
+            <?= htmlspecialchars($e['descricao']) ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+
 <label>Telefone</label>
 <input name="telefone" value="<?= htmlspecialchars($editar['telefone'] ?? '') ?>">
 
@@ -218,7 +238,7 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php foreach ($membros as $m): ?>
         <option value="<?= $m['id_membro'] ?>"
             <?= (isset($editar['cadastrante']) && $editar['cadastrante'] == $m['id_membro']) ? 'selected' : '' ?>>
-            <?= $m['nome_do_membro'] ?>
+            <?= htmlspecialchars($m['nome_do_membro']) ?>
         </option>
     <?php endforeach; ?>
 </select>
@@ -233,12 +253,13 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <h2>Lista de Visitantes</h2>
 
-<table border="1">
+<table>
 <tr>
     <th>Nome</th>
     <th>Data Cadastro</th>
     <th>Sexo</th>
     <th>Tipo</th>
+    <th>Evento</th>
     <th>Telefone</th>
     <th>Email</th>
     <th>Cidade</th>
@@ -252,7 +273,8 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <td><?= htmlspecialchars($v['nome']) ?></td>
     <td><?= htmlspecialchars($v['data_cadastro']) ?></td>
     <td><?= htmlspecialchars($v['sexo']) ?></td>
-    <td><?= htmlspecialchars($v['descricao']) ?></td>
+    <td><?= htmlspecialchars($v['tipo_descricao']) ?></td>
+    <td><?= htmlspecialchars($v['evento_descricao'] ?? '') ?></td>
     <td><?= htmlspecialchars($v['telefone']) ?></td>
     <td><?= htmlspecialchars($v['email']) ?></td>
     <td><?= htmlspecialchars($v['cidade']) ?></td>
