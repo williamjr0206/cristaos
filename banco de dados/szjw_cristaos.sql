@@ -193,6 +193,7 @@ CREATE TABLE `visitantes` (
   `endereco` varchar(200) NOT NULL,
   `oracao` text NOT NULL,
   `data_cadastro` datetime NOT NULL,
+  `id_evento` int(11) NOT NULL,
   `cadastrante` varchar(150) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
