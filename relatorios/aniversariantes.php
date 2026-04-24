@@ -1,4 +1,4 @@
-<?php
+<?php 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -6,6 +6,7 @@ require __DIR__ . '/../config/database.php';
 require __DIR__ . '/../config/auth.php';
 verificaAcesso();
 require __DIR__ . '/../includes/menu.php';
+
 $data_inicio = $_GET['inicio'] ?? '';
 $data_fim    = $_GET['fim'] ?? '';
 
@@ -34,10 +35,10 @@ if ($data_inicio && $data_fim) {
 
 <form method="GET">
     <label>Data Inicial:</label>
-    <input type="date" name="inicio" value="<?= $data_inicio ?>" required>
+    <input type="date" name="inicio" value="<?= htmlspecialchars($data_inicio) ?>" required>
 
     <label>Data Final:</label>
-    <input type="date" name="fim" value="<?= $data_fim ?>" required>
+    <input type="date" name="fim" value="<?= htmlspecialchars($data_fim) ?>" required>
 
     <button type="submit">Filtrar</button>
 </form>
@@ -45,23 +46,31 @@ if ($data_inicio && $data_fim) {
 <?php if ($lista): ?>
 
 <br>
-<a href="aniversariantes_pdf.php?inicio=<?= $data_inicio ?>&fim=<?= $data_fim ?>" target="_blank">
+
+<a href="aniversariantes_pdf.php?inicio=<?= urlencode($data_inicio) ?>&fim=<?= urlencode($data_fim) ?>" target="_blank">
     📄 Gerar PDF
 </a>
 
+&nbsp; | &nbsp;
+
+<a href="aniversariantes_jpeg.php?inicio=<?= urlencode($data_inicio) ?>&fim=<?= urlencode($data_fim) ?>" target="_blank">
+    🖼️ Gerar JPEG
+</a>
+
+<br><br>
+
 <table border="1" cellpadding="5">
-<tr>
-    <th>Nome</th>
-    <th>Data</th>
-</tr>
+    <tr>
+        <th>Nome</th>
+        <th>Data</th>
+    </tr>
 
-<?php foreach ($lista as $l): ?>
-<tr>
-    <td><?= $l['nome_do_membro'] ?></td>
-    <td><?= date('d/m', strtotime($l['data_nascimento'])) ?></td>
-</tr>
-<?php endforeach; ?>
-
+    <?php foreach ($lista as $l): ?>
+    <tr>
+        <td><?= htmlspecialchars($l['nome_do_membro']) ?></td>
+        <td><?= date('d/m', strtotime($l['data_nascimento'])) ?></td>
+    </tr>
+    <?php endforeach; ?>
 </table>
 
 <?php endif; ?>
