@@ -17,14 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $descricao = $_POST['descricao'] ?? '';
 
     if ($id) {
-        $sql = "UPDATE eventos 
+        $sql = "UPDATE grupos 
                 SET descricao = :descricao
-                WHERE id_evento = :id";
+                WHERE id_grupo = :id";
 
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':id', $id);
     } else {
-        $sql = "INSERT INTO eventos (descricao)
+        $sql = "INSERT INTO grupos (descricao)
                 VALUES (:descricao)";
 
         $stmt = $pdo->prepare($sql);
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->execute();
 
-    header("Location: " . BASE_URL . "cadastros/eventos.php");
+    header("Location: " . BASE_URL . "cadastros/grupos.php");
     exit;
 }
 
@@ -46,12 +46,12 @@ if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
 
 
-    $sql = "DELETE FROM eventos WHERE id_evento = :id";
+    $sql = "DELETE FROM grupos WHERE id_grupo = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header("Location: " . BASE_URL . "cadastros/eventos.php");
+    header("Location: " . BASE_URL . "cadastros/grupos.php");
     exit;
 }
 
@@ -64,7 +64,7 @@ if (isset($_GET['edit'])) {
 
     $id = $_GET['edit'];
 
-    $stmt = $pdo->prepare("SELECT * FROM eventos WHERE id_evento = :id");
+    $stmt = $pdo->prepare("SELECT * FROM grupos WHERE id_grupo = :id");
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
@@ -74,7 +74,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    LISTAR
 ===================== */
-$stmt = $pdo->query("SELECT * FROM eventos ORDER BY descricao");
+$stmt = $pdo->query("SELECT * FROM grupos ORDER BY descricao");
 $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -82,7 +82,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
-<title>Eventos</title>
+<title>Classificções de Receber / Pagar:</title>
     <style>
         body { font-family: Arial; margin: 20px; }
         form { margin-bottom: 30px; }
@@ -96,11 +96,11 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-<h2><?= $editar ? 'Editar Evento' : 'Novo Evento' ?></h2>
+<h2><?= $editar ? 'Editar Classificação' : 'Nova Classificação' ?></h2>
 
 <form method="post">
 
-<input type="hidden" name="id" value="<?= $editar['id_evento'] ?? '' ?>">
+<input type="hidden" name="id" value="<?= $editar['id_grupo'] ?? '' ?>">
 
 <label>Descrição do Evento</label>
 <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
@@ -108,12 +108,12 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
 <?php if ($editar): ?>
-    <a href="eventos.php">Cancelar</a>
+    <a href="grupos.php">Cancelar</a>
 <?php endif; ?>
 
 </form>
 
-<h2>Lista de Eventos</h2>
+<h2>Lista de Classificações:</h2>
 
 <table border="1">
 <tr>
@@ -125,9 +125,9 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <tr>
     <td><?= htmlspecialchars($e['descricao']) ?></td>
     <td>
-        <a href="eventos.php?edit=<?= $e['id_evento'] ?>">Editar</a>
-        <a href="eventos.php?delete=<?= $e['id_evento'] ?>"
-           onclick="return confirm('Deseja excluir este evento?')">
+        <a href="grupos.php?edit=<?= $e['id_grupo'] ?>">Editar</a>
+        <a href="grupos.php?delete=<?= $e['id_grupo'] ?>"
+           onclick="return confirm('Deseja excluir esta Classificação ?')">
            Excluir
         </a>
     </td>

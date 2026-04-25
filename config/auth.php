@@ -121,6 +121,7 @@ function temPermissao(string $chave): bool
             'usuarios',
             'membros',
             'visitantes',
+            'classificacoes',
             'igrejas',
             'cargos',
             'tipo',
@@ -128,6 +129,9 @@ function temPermissao(string $chave): bool
             'eventos',
             'aulas',
             'professores',
+            'lancamentos',
+            'dizimos',
+            
 
             /* 🔐 ATAS - SOMENTE ADMIN */
             'atas',
