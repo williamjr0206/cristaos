@@ -14,7 +14,7 @@ $menu = [
         ['chave' => 'dizimos',     'titulo' => 'Dízimos',          'link' => $baseUrl . 'cadastros/dizimos.php'],
         ['chave' => 'visitantes',  'titulo' => 'Visitantes',       'link' => $baseUrl . 'cadastros/visitantes.php'],
         ['chave' => 'lancamentos',  'titulo' => 'Lançamentos',       'link' => $baseUrl . 'cadastros/lancamentos.php'],
-        ['chave' => 'classificacoes', 'titulo' => 'Classificação de Lançamentos',   'link'  => $baseUrl . 'Cadastros/grupos.php'], 
+        ['chave' => 'classificacoes', 'titulo' => 'Classificação de Lançamentos',   'link'  => $baseUrl . 'cadastros/grupos.php'], 
         ['chave' => 'igrejas',     'titulo' => 'Igrejas',          'link' => $baseUrl . 'cadastros/igrejas.php'],
         ['chave' => 'cargos',      'titulo' => 'Cargos',           'link' => $baseUrl . 'cadastros/cargos.php'],
         ['chave' => 'tipo',        'titulo' => 'Tipo',             'link' => $baseUrl . 'cadastros/tipo.php'],
