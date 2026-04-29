@@ -38,6 +38,10 @@ $menu = [
         ['chave' => 'relatorios',         'titulo' => 'Aniversariantes',    'link' => $baseUrl . 'relatorios/aniversariantes.php'],
         ['chave' => 'relatorios',         'titulo' => 'Lista de Membros',   'link' => $baseUrl . 'relatorios/lista_membros.php'],
         ['chave' => 'lista_de_presencas', 'titulo' => 'Lista de Presenças', 'link' => $baseUrl . 'relatorios/lista_de_presencas.php'],
+        ['chave' => 'relatorio_financeiro',         'titulo' => 'Relatório Finânceiro',    'link' => $baseUrl . 'relatorios/relatorio_financeiro.php'],
+        ['chave' => 'fluxo_caixa',         'titulo' => 'Relatório de Fluxo de Caixa',    'link' => $baseUrl . 'relatorios/fluxo_caixa.php'],
+        ['chave' => 'compromissos_pagar',         'titulo' => 'Compromissos a Pagar',    'link' => $baseUrl . 'relatorios/compromissos_pagamentos.php'],
+        ['chave' => 'prestacao_de_contas',         'titulo' => 'Prestação de Contas',    'link' => $baseUrl . 'relatorios/prestacao_contas.php'],
     ],
 
     'Sessão' => [

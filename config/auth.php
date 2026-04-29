@@ -129,14 +129,18 @@ function temPermissao(string $chave): bool
             'eventos',
             'aulas',
             'professores',
-            'lancamentos',
-            'dizimos',
             
 
             /* 🔐 ATAS - SOMENTE ADMIN */
             'atas',
             'atas_pesquisa',
-
+            'lancamentos',
+            'dizimos',
+            'relatorio_financeiro',
+            'fluxo_caixa',
+            'compromissos_pagar',
+            'prestacao_de_contas',
+            
             'presencas',
             'relatorios',
             'consultas',

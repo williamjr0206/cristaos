@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -27,11 +26,11 @@ from reportlab.platypus import (
 # CONFIGURACAO
 # ============================================================
 DB_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "localhost"),
+    "host": os.getenv("MYSQL_HOST", "szjw.com.br"),
     "port": int(os.getenv("MYSQL_PORT", "3306")),
-    "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
-    "database": os.getenv("MYSQL_DATABASE", ""),
+    "user": os.getenv("MYSQL_USER", "szjw_wia"),
+    "password": os.getenv("MYSQL_PASSWORD", "Wia685618&zenilda"),
+    "database": os.getenv("MYSQL_DATABASE", "szjw_cristaos"),
 }
 
 OUTPUT_PDF = os.getenv("OUTPUT_PDF", "relatorio_dados_cadastrais_faltantes.pdf")
@@ -447,9 +446,14 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
             "Declaro que as informacoes acima foram fornecidas por mim e autorizo seu uso para fins de cadastro, "
             "comunicacao e organizacao interna da igreja."
         )
+        autorizacao_foto = (
+            "[  ] Autorizo a IPI de Muzambinho a cadastrar minha foto no sistema da igreja, "
+            "para fins de identificacao interna, organizacao cadastral e controle de presencas."
+        )
         declaracao_tabela = Table(
             [
                 [Paragraph(declaracao, estilos["valor"])],
+                [Paragraph(autorizacao_foto, estilos["valor"])],
                 [Paragraph("Local e data: " + linha_vazia(28), estilos["valor"])],
                 [Paragraph("Assinatura: " + linha_vazia(36), estilos["valor"])],
             ],

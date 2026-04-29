@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = $_POST['tipo'] ?? '';
     $data_vencimento = $_POST['data_vencimento'] ?? '';
     $valor_nominal = $_POST['valor_nominal'] ?? '';
-    $data_pagamento = $_POST['data_pagamento'] ?: null;
-    $valor_pago = $_POST['valor_pago'] ?: null;
+    $data_pagamento = !empty($_POST['data_pagamento']) ? $_POST['data_pagamento'] : null;
+    $valor_pago = $_POST['valor_pago'] !== '' ? $_POST['valor_pago'] : null;
     $status = $_POST['status'] ?? '';
     $forma_de_pagamento_recebimento = $_POST['forma_de_pagamento_recebimento'] ?? '';
     $id_grupo = $_POST['id_grupo'] ?? null;
@@ -134,7 +134,12 @@ $grupos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 /* =====================
    LISTAR
 ===================== */
-$stmt = $pdo->query("SELECT * FROM lancamentos ORDER BY data_vencimento");
+$stmt = $pdo->query("SELECT 
+                        l.*,
+                        g.descricao AS grupo_descricao
+                    FROM lancamentos l
+                    LEFT JOIN grupos g ON g.id_grupo = l.id_grupo
+                    ORDER BY l.data_vencimento DESC, l.id_lancamento DESC");
 $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -150,6 +155,7 @@ $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         form { margin-bottom: 30px; }
         input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
         table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 6px; }
         a { margin-right: 10px; }
     </style>
 </head>
@@ -186,7 +192,7 @@ $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         value="<?= !empty($editar['data_vencimento']) ? date('Y-m-d', strtotime($editar['data_vencimento'])) : '' ?>">
 
     <label>Valor Nominal do Lançamento</label>
-    <input type="number" name="valor_nominal" step=".01" required
+    <input type="number" name="valor_nominal" step="0.01" required
         value="<?= htmlspecialchars($editar['valor_nominal'] ?? '') ?>">
     
     <label>Data do Pagamento</label>
@@ -194,7 +200,7 @@ $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         value="<?= !empty($editar['data_pagamento']) ? date('Y-m-d', strtotime($editar['data_pagamento'])) : '' ?>">
 
     <label>Valor Pago</label>
-    <input type="number" name="valor_pago" step=".01"
+    <input type="number" name="valor_pago" step="0.01"
         value="<?= htmlspecialchars($editar['valor_pago'] ?? '') ?>">
 
     <label>Status do Lançamento</label>
@@ -253,9 +259,11 @@ $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <th>Documento</th>
         <th>Descrição</th>
         <th>Receber / Pagar</th>
+        <th>Grupo</th>
         <th>Vencimento</th>
         <th>Valor Nominal</th>
-        <th>Situação do Lançamento</th>
+        <th>Valor Pago</th>
+        <th>Situação</th>
         <th>Ações</th>
     </tr>
 
@@ -264,8 +272,10 @@ $lancamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($l['documento_numero'] ?? '') ?></td>
             <td><?= htmlspecialchars($l['descricao'] ?? '') ?></td>
             <td><?= htmlspecialchars($l['tipo'] ?? '') ?></td>
-            <td><?= htmlspecialchars($l['data_vencimento'] ?? '') ?></td>
-            <td><?= htmlspecialchars($l['valor_nominal'] ?? '') ?></td>
+            <td><?= htmlspecialchars($l['grupo_descricao'] ?? '') ?></td>
+            <td><?= !empty($l['data_vencimento']) ? htmlspecialchars(date('d/m/Y', strtotime($l['data_vencimento']))) : '' ?></td>
+            <td><?= 'R$ ' . number_format((float)($l['valor_nominal'] ?? 0), 2, ',', '.') ?></td>
+            <td><?= $l['valor_pago'] !== null ? 'R$ ' . number_format((float)$l['valor_pago'], 2, ',', '.') : '' ?></td>
             <td><?= htmlspecialchars($l['status'] ?? '') ?></td>
             <td>
                 <a href="<?= BASE_URL ?>cadastros/lancamentos.php?edit=<?= $l['id_lancamento'] ?>">Editar</a>

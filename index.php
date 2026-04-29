@@ -12,6 +12,10 @@ $perfil = perfilAtual();
 
 $cards = [
     ['chave' => 'membros',     'titulo' => 'Membros',                                   'texto' => 'Cadastro e manutenção dos membros da igreja.',                  'link' => $baseUrl . 'cadastros/membros.php'],
+    ['chave' => 'relatorio_financeiro',     'titulo' => 'Relatório Finânceiro',         'texto' => 'Relatório Finânceiro.',                                         'link' => $baseUrl . 'relatorios/relatorio_financeiro.php'],
+    ['chave' => 'fluxo_caixa',     'titulo' => 'Fluxo de Caixa',                                   'texto' => 'Relatório de Fluxo de Caixa.',                  'link' => $baseUrl . 'relatorios/fluxo_caixa.php'],
+    ['chave' => 'compromissos_pagar',     'titulo' => 'Compromissos a Pagar',                                   'texto' => 'Compromissos a Pagar.',                  'link' => $baseUrl . 'relatorios/compromissos_pagamentos.php'],
+    ['chave' => 'prestacao_de_contas',     'titulo' => 'Prestaçâo de Contas',                                   'texto' => 'Prestação de Contas.',                  'link' => $baseUrl . 'relatorios/prestacao_contas.php'],
     ['chave' => 'atas',        'titulo' => 'Atas',                                      'texto' => 'Cadastro e manutenção das atas.',                               'link' => $baseUrl . 'cadastros/atas.php'],
     ['chave' => 'dizimos',     'titulo' => 'Dízimos',                                   'texto' => 'Cadastro e Lançamentos de Dízimos.',                            'link' => $baseUrl . 'cadastros/dizimos.php'],
     ['chave' => 'atas_pesquisa','titulo' => 'Pesquisa de Atas',                         'texto' => 'Pesquisa por número da reunião, data ou palavra-chave.',        'link' => $baseUrl . 'consultas/atas_pesquisa.php'],
