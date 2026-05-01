@@ -23,6 +23,7 @@ $menu = [
         ['chave' => 'aulas',       'titulo' => 'Aulas',            'link' => $baseUrl . 'cadastros/aulas.php'],
         ['chave' => 'professores', 'titulo' => 'Professores',      'link' => $baseUrl . 'cadastros/professores.php'],
         ['chave' => 'atas',        'titulo' => 'Atas',             'link' => $baseUrl . 'cadastros/atas.php'],
+        ['chave' => 'historico_membro',    'titulo' => 'Histórico do Memnro',         'link' => $baseUrl . 'cadastros/historico_membro.php'],
     ],
 
     'Consultas' => [

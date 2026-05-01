@@ -18,7 +18,7 @@ if ($data_inicio && $data_fim) {
             FROM membros
             WHERE DATE_FORMAT(data_nascimento, '%m-%d') 
             BETWEEN DATE_FORMAT(:inicio, '%m-%d') 
-            AND DATE_FORMAT(:fim, '%m-%d')
+            AND DATE_FORMAT(:fim, '%m-%d') AND status_atual = 'Ativo'
             ORDER BY DATE_FORMAT(data_nascimento, '%m-%d')";
 
     $stmt = $pdo->prepare($sql);

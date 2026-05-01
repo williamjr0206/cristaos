@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cidade                 = $_POST['cidade'] ?? '';
     $estado                 = $_POST['estado'] ?? '';
     $email                  = $_POST['email'] ?? '';
-    $ativo                  = $_POST['ativo'] ?? 1;
+    $status_atual           = $_POST['status_atual'] ?? '';
     $databatismo_mysql      = $_POST['data_batismo'] ?? '';
     $databatismo            = !empty($databatismo_mysql) ? date('Y-m-d', strtotime($databatismo_mysql)) : null;
     $dataprofissaodefe_mysql = $_POST['data_profissao_de_fe'] ?? '';
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     cidade = :cidade,
                     estado = :estado,
                     email = :email,
-                    ativo = :ativo,
+                    status_atual = :status_atual,
                     data_batismo = :data_batismo,
                     data_profissao_de_fe = :data_profissao_de_fe,
                     id_cargo = :id_cargo
@@ -73,12 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "INSERT INTO membros (
                     id_igreja, nome_do_membro, id_tipo, telefone, sexo, data_nascimento,
                     nacionalidade, naturalidade, nome_do_pai, nome_da_mae, tipo_sanguineo,
-                    estado_civil, cep, endereco, cidade, estado, email, ativo,
+                    estado_civil, cep, endereco, cidade, estado, email, status_atual,
                     data_batismo, data_profissao_de_fe, id_cargo
                 ) VALUES (
                     :id_igreja, :nome_do_membro, :id_tipo, :telefone, :sexo, :data_nascimento,
                     :nacionalidade, :naturalidade, :nome_do_pai, :nome_da_mae, :tipo_sanguineo,
-                    :estado_civil, :cep, :endereco, :cidade, :estado, :email, :ativo,
+                    :estado_civil, :cep, :endereco, :cidade, :estado, :email, :status_atual,
                     :data_batismo, :data_profissao_de_fe, :id_cargo
                 )";
 
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindParam(':cidade', $cidade);
     $stmt->bindParam(':estado', $estado);
     $stmt->bindParam(':email', $email);
-    $stmt->bindParam(':ativo', $ativo);
+    $stmt->bindParam(':status_atual', $status_atual);
     $stmt->bindParam(':data_batismo', $databatismo);
     $stmt->bindParam(':data_profissao_de_fe', $dataprofissaodefe);
     $stmt->bindParam(':id_cargo', $id_cargo);
@@ -171,7 +171,7 @@ $stmt = $pdo->query("
     INNER JOIN igrejas ON membros.id_igreja = igrejas.id_igreja
     INNER JOIN cargos ON membros.id_cargo = cargos.id_cargo
     INNER JOIN tipo ON membros.id_tipo = tipo.id_tipo
-    WHERE membros.ativo = 1
+    WHERE membros.status_atual = 'Ativo'
     ORDER BY membros.nome_do_membro
 ");
 
@@ -313,11 +313,14 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endforeach; ?>
     </select>
 
-    <label>Ativo</label>
-    <select name="ativo" required>
-        <option value="1" <?= (isset($editar['ativo']) && $editar['ativo'] == 1) ? 'selected' : '' ?>>Ativo</option>
-        <option value="2" <?= (isset($editar['ativo']) && $editar['ativo'] == 2) ? 'selected' : '' ?>>Não Ativo</option>
-    </select>
+    <label>Status do Membro</label>
+        <select name="status_atual" required>
+            <?php foreach (['Ativo','Inativo','Transferido','Desligado','Excluido','Falecido'] as $s): ?>
+            <option value="<?= $s ?>" <?= (isset($editar['status']) && $editar['status'] == $s) ? 'selected' : '' ?>>
+            <?= $s ?>
+        </option>
+    <?php endforeach; ?>
+</select>
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 

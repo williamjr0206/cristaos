@@ -262,7 +262,7 @@ if (isset($_GET['edit'])) {
 /* =====================
    SELECTS
 ===================== */
-$stmt = $pdo->query("SELECT id_membro, nome_do_membro FROM membros WHERE ativo = 1 ORDER BY nome_do_membro");
+$stmt = $pdo->query("SELECT id_membro, nome_do_membro FROM membros WHERE status_atual = 'Ativo' ORDER BY nome_do_membro");
 $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
@@ -275,11 +275,11 @@ $stmt = $pdo->query("SELECT
     d.valor_dizimo,
     d.id_lancamento_financeiro,
     m.nome_do_membro,
-    m.ativo 
+    m.status_atual 
 FROM dizimos d
 INNER JOIN membros m
     ON d.id_membro = m.id_membro 
-WHERE m.ativo = 1 
+WHERE m.status_atual = 'Ativo' 
 ORDER BY d.data_lancamento DESC, m.nome_do_membro");
 
 $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);

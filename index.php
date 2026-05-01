@@ -18,6 +18,7 @@ $cards = [
     ['chave' => 'prestacao_de_contas',     'titulo' => 'Prestaçâo de Contas',                                   'texto' => 'Prestação de Contas.',                  'link' => $baseUrl . 'relatorios/prestacao_contas.php'],
     ['chave' => 'atas',        'titulo' => 'Atas',                                      'texto' => 'Cadastro e manutenção das atas.',                               'link' => $baseUrl . 'cadastros/atas.php'],
     ['chave' => 'dizimos',     'titulo' => 'Dízimos',                                   'texto' => 'Cadastro e Lançamentos de Dízimos.',                            'link' => $baseUrl . 'cadastros/dizimos.php'],
+    ['chave' => 'historico_membro',     'titulo' => 'Histórico de Membro',                                   'texto' => 'Cadastro de Histórico de Membro.',                  'link' => $baseUrl . 'cadastros/historico_membro.php'],
     ['chave' => 'atas_pesquisa','titulo' => 'Pesquisa de Atas',                         'texto' => 'Pesquisa por número da reunião, data ou palavra-chave.',        'link' => $baseUrl . 'consultas/atas_pesquisa.php'],
     ['chave' => 'visitantes',  'titulo' => 'Visitantes',                                'texto' => 'Cadastro de visitantes e acompanhamentos.',                     'link' => $baseUrl . 'cadastros/visitantes.php'],
     ['chave' => 'lancamentos','titulo' => 'Lançamentos',                         'texto' => 'Lançamentos de Contas a Pagar e Receber',        'link' => $baseUrl . 'cadastros/lancamentos.php'],

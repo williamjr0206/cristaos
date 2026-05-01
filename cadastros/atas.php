@@ -148,8 +148,7 @@ $stmtMembros = $pdo->query("
         c.descricao AS cargo
     FROM membros m
     INNER JOIN cargos c ON m.id_cargo = c.id_cargo
-    WHERE m.ativo = 1
-      AND m.id_cargo IN (4, 5)
+    WHERE m.id_cargo IN (4, 5)
     ORDER BY m.nome_do_membro
 ");
 $membros = $stmtMembros->fetchAll(PDO::FETCH_ASSOC);

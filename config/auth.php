@@ -140,6 +140,7 @@ function temPermissao(string $chave): bool
             'fluxo_caixa',
             'compromissos_pagar',
             'prestacao_de_contas',
+            'historico_membro',
             
             'presencas',
             'relatorios',
