@@ -13,37 +13,42 @@ require __DIR__ . '/../includes/menu.php';
 ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-
     date_default_timezone_set('America/Sao_Paulo');
 
-    $id                     = $_POST['id'] ?? null;
-    $id_igreja              = $_POST['id_igreja'] ?? '';
-    $nomedomembro           = $_POST['nome_do_membro'] ?? '';
-    $id_tipo                = $_POST['id_tipo'] ?? '';
-    $telefone               = $_POST['telefone'] ?? '';
-    $sexo                   = $_POST['sexo'] ?? '';
-    $datanascimento_mysql   = $_POST['data_nascimento'] ?? '';
-    $datanascimento         = !empty($datanascimento_mysql) ? date('Y-m-d', strtotime($datanascimento_mysql)) : null;
-    $nacionalidade          = $_POST['nacionalidade'] ?? '';
-    $naturalidade           = $_POST['naturalidade'] ?? '';
-    $nomedopai              = $_POST['nome_do_pai'] ?? '';
-    $nomedamae              = $_POST['nome_da_mae'] ?? '';
-    $tiposanguineo          = $_POST['tipo_sanguineo'] ?? '';
-    $estadocivil            = $_POST['estado_civil'] ?? '';
-    $cep                    = $_POST['cep'] ?? '';
-    $endereco               = $_POST['endereco'] ?? '';
-    $cidade                 = $_POST['cidade'] ?? '';
-    $estado                 = $_POST['estado'] ?? '';
-    $email                  = $_POST['email'] ?? '';
-    $status_atual           = $_POST['status_atual'] ?? '';
-    $databatismo_mysql      = $_POST['data_batismo'] ?? '';
-    $databatismo            = !empty($databatismo_mysql) ? date('Y-m-d', strtotime($databatismo_mysql)) : null;
+    $id                      = $_POST['id'] ?? null;
+    $codigo_barras           = $_POST['codigo_barras'] ?? '';
+    $id_igreja               = $_POST['id_igreja'] ?? '';
+    $nomedomembro            = $_POST['nome_do_membro'] ?? '';
+    $id_tipo                 = $_POST['id_tipo'] ?? '';
+    $telefone                = $_POST['telefone'] ?? '';
+    $sexo                    = $_POST['sexo'] ?? '';
+    $datanascimento_mysql    = $_POST['data_nascimento'] ?? '';
+    $datanascimento          = !empty($datanascimento_mysql) ? date('Y-m-d', strtotime($datanascimento_mysql)) : null;
+    $nacionalidade           = $_POST['nacionalidade'] ?? '';
+    $naturalidade            = $_POST['naturalidade'] ?? '';
+    $nomedopai               = $_POST['nome_do_pai'] ?? '';
+    $nomedamae               = $_POST['nome_da_mae'] ?? '';
+    $tiposanguineo           = $_POST['tipo_sanguineo'] ?? '';
+    $estadocivil             = $_POST['estado_civil'] ?? '';
+    $cep                     = $_POST['cep'] ?? '';
+    $endereco                = $_POST['endereco'] ?? '';
+    $cidade                  = $_POST['cidade'] ?? '';
+    $estado                  = $_POST['estado'] ?? '';
+    $email                   = $_POST['email'] ?? '';
+    $status_atual            = $_POST['status_atual'] ?? 'Ativo';
+    $databatismo_mysql       = $_POST['data_batismo'] ?? '';
+    $databatismo             = !empty($databatismo_mysql) ? date('Y-m-d', strtotime($databatismo_mysql)) : null;
     $dataprofissaodefe_mysql = $_POST['data_profissao_de_fe'] ?? '';
-    $dataprofissaodefe      = !empty($dataprofissaodefe_mysql) ? date('Y-m-d', strtotime($dataprofissaodefe_mysql)) : null;
-    $id_cargo               = $_POST['id_cargo'] ?? '';
+    $dataprofissaodefe       = !empty($dataprofissaodefe_mysql) ? date('Y-m-d', strtotime($dataprofissaodefe_mysql)) : null;
+    $id_cargo                = $_POST['id_cargo'] ?? '';
+
+    if ($codigo_barras === '') {
+        $codigo_barras = null;
+    }
 
     if ($id) {
         $sql = "UPDATE membros SET
+                    codigo_barras = :codigo_barras,
                     id_igreja = :id_igreja,
                     nome_do_membro = :nome_do_membro,
                     id_tipo = :id_tipo,
@@ -71,12 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
     } else {
         $sql = "INSERT INTO membros (
-                    id_igreja, nome_do_membro, id_tipo, telefone, sexo, data_nascimento,
+                    codigo_barras, id_igreja, nome_do_membro, id_tipo, telefone, sexo, data_nascimento,
                     nacionalidade, naturalidade, nome_do_pai, nome_da_mae, tipo_sanguineo,
                     estado_civil, cep, endereco, cidade, estado, email, status_atual,
                     data_batismo, data_profissao_de_fe, id_cargo
                 ) VALUES (
-                    :id_igreja, :nome_do_membro, :id_tipo, :telefone, :sexo, :data_nascimento,
+                    :codigo_barras, :id_igreja, :nome_do_membro, :id_tipo, :telefone, :sexo, :data_nascimento,
                     :nacionalidade, :naturalidade, :nome_do_pai, :nome_da_mae, :tipo_sanguineo,
                     :estado_civil, :cep, :endereco, :cidade, :estado, :email, :status_atual,
                     :data_batismo, :data_profissao_de_fe, :id_cargo
@@ -85,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare($sql);
     }
 
+    $stmt->bindParam(':codigo_barras', $codigo_barras);
     $stmt->bindParam(':id_igreja', $id_igreja);
     $stmt->bindParam(':nome_do_membro', $nomedomembro);
     $stmt->bindParam(':id_tipo', $id_tipo);
@@ -159,6 +165,7 @@ $cargos = $stmt4->fetchAll(PDO::FETCH_ASSOC);
 $stmt = $pdo->query("
     SELECT
         membros.id_membro,
+        membros.codigo_barras,
         membros.nome_do_membro,
         membros.id_igreja,
         membros.id_cargo,
@@ -189,9 +196,9 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
         form { margin-bottom: 30px; }
         input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
         table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 6px; }
         a { margin-right: 10px; }
     </style>
-
 </head>
 <body>
 
@@ -201,6 +208,9 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <input type="hidden" name="id" value="<?= $editar['id_membro'] ?? '' ?>">
 
+    <label>Código de Barras</label>
+    <input name="codigo_barras"
+           value="<?= htmlspecialchars($editar['codigo_barras'] ?? '') ?>">
 
     <label>Igreja</label>
     <select name="id_igreja" required>
@@ -314,13 +324,13 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </select>
 
     <label>Status do Membro</label>
-        <select name="status_atual" required>
-            <?php foreach (['Ativo','Inativo','Transferido','Desligado','Excluido','Falecido'] as $s): ?>
-            <option value="<?= $s ?>" <?= (isset($editar['status']) && $editar['status'] == $s) ? 'selected' : '' ?>>
-            <?= $s ?>
-        </option>
-    <?php endforeach; ?>
-</select>
+    <select name="status_atual" required>
+        <?php foreach (['Ativo','Inativo','Transferido','Desligado','Excluido','Falecido'] as $s): ?>
+            <option value="<?= $s ?>" <?= (isset($editar['status_atual']) && $editar['status_atual'] == $s) ? 'selected' : '' ?>>
+                <?= $s ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
 
     <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
 
@@ -333,6 +343,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <table border="1">
     <tr>
+        <th>Código</th>
         <th>Membro</th>
         <th>Igreja</th>
         <th>Tipo de Membro</th>
@@ -344,6 +355,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <?php foreach ($membros as $m): ?>
         <tr>
+            <td><?= htmlspecialchars($m['codigo_barras'] ?? '') ?></td>
             <td><?= htmlspecialchars($m['nome_do_membro']) ?></td>
             <td><?= htmlspecialchars($m['igreja']) ?></td>
             <td><?= htmlspecialchars($m['tipo']) ?></td>
@@ -369,7 +381,7 @@ $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td>
                 <a href="membros.php?edit=<?= $m['id_membro'] ?>">Editar</a>
                 <a href="membros.php?delete=<?= $m['id_membro'] ?>"
-                onclick="return confirm('Deseja excluir mesmo esse Membro ?')">Excluir</a>
+                   onclick="return confirm('Deseja excluir mesmo esse Membro ?')">Excluir</a>
             </td>
         </tr>
     <?php endforeach; ?>
