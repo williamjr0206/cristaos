@@ -4,7 +4,7 @@ require __DIR__ . '/config/database.php';
 $senha = '123456';
 $hash = password_hash($senha, PASSWORD_DEFAULT);
 
-$stmt = $con->prepare(
+$stmt = $pdo->prepare(
     "INSERT INTO usuarios (nome_usuario, email, senha, perfil, ativo)
      VALUES (:nome_usuario, :email, :senha, :perfil, 1)"
 );
