@@ -36,6 +36,7 @@ $cards = [
     ['chave' => 'relatorios',  'titulo' => 'Lista de Membros',                          'texto' => 'Relação geral dos membros cadastrados.',                        'link' => $baseUrl . 'relatorios/lista_membros.php'],
     ['chave' => 'lista_de_presencas', 'titulo' => 'Lista de Presenças',                 'texto' => 'Relatório escolar de presença e falta por evento.',             'link' => $baseUrl . 'relatorios/lista_de_presencas.php'],
     ['chave' => 'boas_vindas', 'titulo' => 'Boas-vindas',                               'texto' => 'Carta de boas-vindas para visitantes.',                         'link' => $baseUrl . 'relatorios/boas_vindas.php'],
+    ['chave' => 'envelopes', 'titulo' => 'QRCode para envelopes Dízimos',                               'texto' => 'Imprimi QRCode para envelopes de Dízimos por Membro.',                         'link' => $baseUrl . 'relatorios/envelope_dizimos_pdf.php'],
 ];
 ?>
 <!DOCTYPE html>

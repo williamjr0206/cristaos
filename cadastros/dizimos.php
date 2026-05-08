@@ -10,9 +10,48 @@ require __DIR__ . '/../includes/menu.php';
 
 /*
 IMPORTANTE:
-Para vincular o dízimo ao lançamento financeiro, crie este campo no MySQL:
+A tabela membros precisa ter o campo:
+ALTER TABLE membros ADD codigo_barras VARCHAR(100) NULL UNIQUE AFTER id_membro;
+
+Para vincular o dízimo ao lançamento financeiro:
 ALTER TABLE dizimos ADD COLUMN id_lancamento_financeiro INT NULL AFTER valor_dizimo;
 */
+
+/* =====================
+   BUSCAR MEMBRO PELO QRCODE
+===================== */
+if (isset($_GET['buscar_codigo'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $codigo = trim($_GET['buscar_codigo']);
+
+    $stmt = $pdo->prepare("
+        SELECT id_membro, nome_do_membro
+        FROM membros
+        WHERE codigo_barras = :codigo
+          AND status_atual = 'Ativo'
+        LIMIT 1
+    ");
+    $stmt->bindParam(':codigo', $codigo);
+    $stmt->execute();
+
+    $membro = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($membro) {
+        echo json_encode([
+            'encontrado' => true,
+            'id_membro' => $membro['id_membro'],
+            'nome_do_membro' => $membro['nome_do_membro']
+        ]);
+    } else {
+        echo json_encode([
+            'encontrado' => false,
+            'mensagem' => 'Membro não encontrado para este QRCode.'
+        ]);
+    }
+
+    exit;
+}
 
 /* =====================
    FUNÇÕES AUXILIARES
@@ -67,9 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descricao_lancamento = 'Dízimo - ' . $nome_membro;
 
         if ($id) {
-            /* =====================
-               ATUALIZA DÍZIMO
-            ===================== */
             $sql = "UPDATE dizimos SET
                         data_lancamento = :data_lancamento,
                         id_membro = :id_membro,
@@ -83,7 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':valor_dizimo', $valor_dizimo);
             $stmt->execute();
 
-            /* Busca o lançamento financeiro vinculado */
             $stmtBusca = $pdo->prepare("SELECT id_lancamento_financeiro FROM dizimos WHERE id_lancamento = :id LIMIT 1");
             $stmtBusca->bindParam(':id', $id);
             $stmtBusca->execute();
@@ -91,9 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_lancamento_financeiro = $dizimoAtual['id_lancamento_financeiro'] ?? null;
 
             if ($id_lancamento_financeiro) {
-                /* =====================
-                   ATUALIZA LANÇAMENTO FINANCEIRO
-                ===================== */
                 $sqlLanc = "UPDATE lancamentos SET
                                 documento_numero = :documento_numero,
                                 data_lancamento = :data_lancamento,
@@ -125,9 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
         } else {
-            /* =====================
-               INSERE DÍZIMO
-            ===================== */
             $sql = "INSERT INTO dizimos (data_lancamento, id_membro, valor_dizimo)
                     VALUES (:data_lancamento, :id_membro, :valor_dizimo)";
 
@@ -140,9 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_dizimo = (int)$pdo->lastInsertId();
             $documento_numero = 'DIZ-' . str_pad((string)$id_dizimo, 6, '0', STR_PAD_LEFT);
 
-            /* =====================
-               INSERE LANÇAMENTO FINANCEIRO
-            ===================== */
             $sqlLanc = "INSERT INTO lancamentos (
                             documento_numero,
                             data_lancamento,
@@ -183,10 +209,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $id_lancamento_financeiro = (int)$pdo->lastInsertId();
 
-            /* Vincula o dízimo ao lançamento financeiro */
             $sqlVinculo = "UPDATE dizimos
                            SET id_lancamento_financeiro = :id_lancamento_financeiro
                            WHERE id_lancamento = :id_dizimo";
+
             $stmtVinculo = $pdo->prepare($sqlVinculo);
             $stmtVinculo->bindParam(':id_lancamento_financeiro', $id_lancamento_financeiro);
             $stmtVinculo->bindParam(':id_dizimo', $id_dizimo);
@@ -262,7 +288,12 @@ if (isset($_GET['edit'])) {
 /* =====================
    SELECTS
 ===================== */
-$stmt = $pdo->query("SELECT id_membro, nome_do_membro FROM membros WHERE status_atual = 'Ativo' ORDER BY nome_do_membro");
+$stmt = $pdo->query("
+    SELECT id_membro, nome_do_membro, codigo_barras
+    FROM membros
+    WHERE status_atual = 'Ativo'
+    ORDER BY nome_do_membro
+");
 $membros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* =====================
@@ -275,6 +306,7 @@ $stmt = $pdo->query("SELECT
     d.valor_dizimo,
     d.id_lancamento_financeiro,
     m.nome_do_membro,
+    m.codigo_barras,
     m.status_atual 
 FROM dizimos d
 INNER JOIN membros m
@@ -298,8 +330,27 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         table { border-collapse: collapse; width: 100%; }
         th, td { padding: 6px; }
         a { margin-right: 10px; }
-    </style>
 
+        .box-qrcode {
+            background: #f3f3f3;
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin-bottom: 20px;
+            max-width: 430px;
+        }
+
+        .ok {
+            color: green;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .erro {
+            color: red;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+    </style>
 </head>
 <body>
 
@@ -311,21 +362,34 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <label>Data do Lançamento</label>
     <input type="date" name="data_lancamento" required
-        value="<?= isset($editar['data_lancamento']) ? date('Y-m-d', strtotime($editar['data_lancamento'])) : '' ?>">
+        value="<?= isset($editar['data_lancamento']) ? date('Y-m-d', strtotime($editar['data_lancamento'])) : date('Y-m-d') ?>">
 
-    <label>Membros</label>
-    <select name="id_membro" required>
+    <div class="box-qrcode">
+        <label>Ler QRCode / Código de Barras do Envelope</label>
+        <input type="text"
+               id="codigo_barras"
+               placeholder="Clique aqui e leia o QRCode do envelope"
+               autocomplete="off"
+               autofocus>
+
+        <div id="mensagem_qrcode"></div>
+    </div>
+
+    <label>Membro</label>
+    <select name="id_membro" id="id_membro" required>
         <option value="">Selecione</option>
         <?php foreach ($membros as $membro): ?>
             <option value="<?= $membro['id_membro'] ?>"
                 <?= (isset($editar['id_membro']) && $editar['id_membro'] == $membro['id_membro']) ? 'selected' : '' ?>>
                 <?= htmlspecialchars($membro['nome_do_membro']) ?>
+                <?= !empty($membro['codigo_barras']) ? ' - ' . htmlspecialchars($membro['codigo_barras']) : '' ?>
             </option>
         <?php endforeach; ?>
     </select>
 
     <label>Valor do Dízimo em R$</label>
-    <input type="number" name="valor_dizimo" required step="0.01" value="<?= htmlspecialchars($editar['valor_dizimo'] ?? '') ?>">
+    <input type="number" name="valor_dizimo" required step="0.01"
+           value="<?= htmlspecialchars($editar['valor_dizimo'] ?? '') ?>">
 
     <label>Forma do Recebimento</label>
     <select name="forma_de_pagamento_recebimento" required>
@@ -346,6 +410,7 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <table border="1">
     <tr>
         <th>Data do Lançamento</th>
+        <th>Código</th>
         <th>Membro</th>
         <th>Valor do Dízimo em R$</th>
         <th>Lançamento Financeiro</th>
@@ -355,6 +420,7 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php foreach ($dizimos as $d): ?>
         <tr>
             <td><?= htmlspecialchars(date('d/m/Y', strtotime($d['data_lancamento']))) ?></td>
+            <td><?= htmlspecialchars($d['codigo_barras'] ?? '') ?></td>
             <td><?= htmlspecialchars($d['nome_do_membro']) ?></td>
             <td><?= 'R$ ' . number_format((float)$d['valor_dizimo'], 2, ',', '.') ?></td>
             <td><?= !empty($d['id_lancamento_financeiro']) ? 'Gerado' : 'Não gerado' ?></td>
@@ -368,6 +434,61 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tr>
     <?php endforeach; ?>
 </table>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const campoCodigo = document.getElementById('codigo_barras');
+    const selectMembro = document.getElementById('id_membro');
+    const mensagem = document.getElementById('mensagem_qrcode');
+
+    campoCodigo.addEventListener('change', function () {
+        buscarMembroPorCodigo();
+    });
+
+    campoCodigo.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            buscarMembroPorCodigo();
+        }
+    });
+
+    function buscarMembroPorCodigo() {
+        const codigo = campoCodigo.value.trim();
+
+        if (codigo === '') {
+            return;
+        }
+
+        mensagem.innerHTML = 'Buscando membro...';
+        mensagem.className = '';
+
+        fetch('dizimos.php?buscar_codigo=' + encodeURIComponent(codigo))
+            .then(response => response.json())
+            .then(data => {
+                if (data.encontrado) {
+                    selectMembro.value = data.id_membro;
+
+                    mensagem.innerHTML = 'Membro encontrado: ' + data.nome_do_membro;
+                    mensagem.className = 'ok';
+
+                    const campoValor = document.querySelector('input[name="valor_dizimo"]');
+                    campoValor.focus();
+                } else {
+                    selectMembro.value = '';
+                    mensagem.innerHTML = data.mensagem;
+                    mensagem.className = 'erro';
+                    campoCodigo.focus();
+                    campoCodigo.select();
+                }
+            })
+            .catch(error => {
+                mensagem.innerHTML = 'Erro ao buscar o membro pelo QRCode.';
+                mensagem.className = 'erro';
+                console.error(error);
+            });
+    }
+});
+</script>
 
 </body>
 </html>

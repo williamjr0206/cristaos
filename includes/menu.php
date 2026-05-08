@@ -43,6 +43,7 @@ $menu = [
         ['chave' => 'fluxo_caixa',         'titulo' => 'Relatório de Fluxo de Caixa',    'link' => $baseUrl . 'relatorios/fluxo_caixa.php'],
         ['chave' => 'compromissos_pagar',         'titulo' => 'Compromissos a Pagar',    'link' => $baseUrl . 'relatorios/compromissos_pagamentos.php'],
         ['chave' => 'prestacao_de_contas',         'titulo' => 'Prestação de Contas',    'link' => $baseUrl . 'relatorios/prestacao_contas.php'],
+        ['chave' => 'envelopes',         'titulo' => 'QRCodes para Envelopes Dízimos',    'link' => $baseUrl . 'relatorios/envelopes_dizimos_pdf.php'],
     ],
 
     'Sessão' => [
