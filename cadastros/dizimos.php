@@ -6,24 +6,12 @@ ob_start();
 require __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/auth.php';
 verificaAcesso();
-require __DIR__ . '/../includes/menu.php';
 
-/*
-IMPORTANTE:
-A tabela membros precisa ter o campo:
-ALTER TABLE membros ADD codigo_barras VARCHAR(100) NULL UNIQUE AFTER id_membro;
-
-Para vincular o dízimo ao lançamento financeiro:
-ALTER TABLE dizimos ADD COLUMN id_lancamento_financeiro INT NULL AFTER valor_dizimo;
-*/
-
-/* =====================
-   BUSCAR MEMBRO PELO QRCODE
-===================== */
+/* BUSCAR MEMBRO PELO QRCODE */
 if (isset($_GET['buscar_codigo'])) {
     header('Content-Type: application/json; charset=utf-8');
 
-    $codigo = trim($_GET['buscar_codigo']);
+    $codigo = preg_replace('/\s+/', '', trim($_GET['buscar_codigo']));
 
     $stmt = $pdo->prepare("
         SELECT id_membro, nome_do_membro
@@ -53,6 +41,7 @@ if (isset($_GET['buscar_codigo'])) {
     exit;
 }
 
+require __DIR__ . '/../includes/menu.php';
 /* =====================
    FUNÇÕES AUXILIARES
 ===================== */
@@ -350,6 +339,19 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-weight: bold;
             margin-top: 8px;
         }
+
+        #reader {
+            width: 350px;
+            max-width: 100%;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .aviso-camera {
+            font-size: 13px;
+            color: #555;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -366,11 +368,18 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="box-qrcode">
         <label>Ler QRCode / Código de Barras do Envelope</label>
+
         <input type="text"
                id="codigo_barras"
                placeholder="Clique aqui e leia o QRCode do envelope"
                autocomplete="off"
                autofocus>
+
+        <div id="reader"></div>
+
+        <div class="aviso-camera">
+            Se o navegador pedir permissão para usar a câmera, clique em <strong>Permitir</strong>.
+        </div>
 
         <div id="mensagem_qrcode"></div>
     </div>
@@ -435,11 +444,67 @@ $dizimos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endforeach; ?>
 </table>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <script>
+function iniciarLeitorQRCode() {
+    const areaLeitor = document.getElementById('reader');
+    const mensagem = document.getElementById('mensagem_qrcode');
+
+    if (!areaLeitor) {
+        return;
+    }
+
+    const html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+
+        if (devices && devices.length) {
+
+            const cameraId = devices[0].id;
+
+            html5QrCode.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: 250
+                },
+                (decodedText, decodedResult) => {
+
+                    const campoCodigo = document.getElementById('codigo_barras');
+
+                    if (campoCodigo.value.trim() !== decodedText.trim()) {
+                        campoCodigo.value = decodedText.trim();
+                        campoCodigo.dispatchEvent(new Event('change'));
+                    }
+                },
+                (errorMessage) => {
+                    // Erros de leitura contínuos são normais enquanto não identifica QRCode.
+                }
+            ).catch(err => {
+                mensagem.innerHTML = 'Não foi possível iniciar a câmera.';
+                mensagem.className = 'erro';
+                console.error(err);
+            });
+
+        } else {
+            mensagem.innerHTML = 'Nenhuma câmera foi encontrada neste notebook.';
+            mensagem.className = 'erro';
+        }
+
+    }).catch(err => {
+        mensagem.innerHTML = 'Não foi possível acessar a câmera. Verifique a permissão do navegador.';
+        mensagem.className = 'erro';
+        console.error(err);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const campoCodigo = document.getElementById('codigo_barras');
     const selectMembro = document.getElementById('id_membro');
     const mensagem = document.getElementById('mensagem_qrcode');
+
+    iniciarLeitorQRCode();
 
     campoCodigo.addEventListener('change', function () {
         buscarMembroPorCodigo();
