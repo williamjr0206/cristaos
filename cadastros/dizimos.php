@@ -461,14 +461,14 @@ function iniciarLeitorQRCode() {
 
         if (devices && devices.length) {
 
-            const cameraId = devices[0].id;
+            //const cameraId = devices[0].id;
 
             html5QrCode.start(
-                cameraId,
-                {
+                { facingMode: "environment" },
+            {
                     fps: 10,
                     qrbox: 250
-                },
+            },
                 (decodedText, decodedResult) => {
 
                     const campoCodigo = document.getElementById('codigo_barras');

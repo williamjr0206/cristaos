@@ -147,7 +147,7 @@ $menu = [
 </style>
 
 <div class="topo-sistema">
-    <div class="titulo">IPI Muzambinho - Sistema Interno</div>
+    <div class="titulo">Sistema de Igrejas Evangélicas</div>
     <div class="usuario">
         <?= htmlspecialchars(nomeUsuarioAtual()) ?> - Perfil: <strong><?= htmlspecialchars(perfilAtual()) ?></strong>
     </div>
