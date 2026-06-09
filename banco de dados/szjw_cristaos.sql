@@ -366,7 +366,7 @@ CREATE TABLE `usuarios` (
   `nome_usuario` varchar(150) CHARACTER SET latin1 COLLATE latin1_german1_ci NOT NULL,
   `email` varchar(100) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
   `senha` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
-  `perfil` enum('ADMIN','OPERADOR','CONSULTA','LIDER') CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
+  `perfil` enum('ADMIN','OPERADOR','CONSULTA','LIDER','CONSELHO') CHARACTER SET latin1 COLLATE latin1_general_ci NOT NULL,
   `criado_em` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

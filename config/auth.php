@@ -177,6 +177,40 @@ function temPermissao(string $chave): bool
             'boas_vindas',
             'sair'
         ],
+
+         /* =====================
+           CONSELHO
+        ====================== */
+        'CONSELHO' => [
+            'membros',
+            'visitantes',
+            'classificacoes',
+            'igrejas',
+            'cargos',
+            'tipo',
+            'cursos',
+            'eventos',
+            'aulas',
+            'professores',
+            'acompanhamento_espiritual',
+           'atas',
+            'atas_pesquisa',
+            'lancamentos',
+            'dizimos',
+            'relatorio_financeiro',
+            'fluxo_caixa',
+            'compromissos_pagar',
+            'prestacao_de_contas',
+            'historico_membro',
+            'envelopes',
+            'presencas',
+            'relatorios',
+            'consultas',
+            'lista_de_presencas',
+            'boas_vindas',
+            'sair'
+ 
+        ]
     ];
 
     return in_array($chave, $permissoes[$perfil] ?? [], true);
