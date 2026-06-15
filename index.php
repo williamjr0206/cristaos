@@ -38,6 +38,7 @@ $cards = [
     ['chave' => 'boas_vindas', 'titulo' => 'Boas-vindas',                               'texto' => 'Carta de boas-vindas para visitantes.',                         'link' => $baseUrl . 'relatorios/boas_vindas.php'],
     ['chave' => 'envelopes', 'titulo' => 'QRCode para envelopes Dízimos',                               'texto' => 'Imprimi QRCode para envelopes de Dízimos por Membro.',                         'link' => $baseUrl . 'relatorios/envelope_dizimos_pdf.php'],
     ['chave' => 'acompanhamento_espiritual', 'titulo' => 'Acompanhamento Espiritual',                               'texto' => 'Acompanhamento Espiritual.',                         'link' => $baseUrl . 'cadastros/acompanhamento_espiritual.php'],
+    ['chave' => 'estatistica_anual', 'titulo' => 'Estatística Anual',                               'texto' => 'Estatística Anual.',                         'link' => $baseUrl . 'relatorios/estatistica_anual.php'],
 ];
 ?>
 <!DOCTYPE html>
