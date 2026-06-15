@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import mysql.connector
 from mysql.connector import Error
@@ -18,28 +18,26 @@ from reportlab.platypus import (
     Table,
     TableStyle,
     PageBreak,
-    KeepTogether,
 )
-
 
 # ============================================================
 # CONFIGURACAO
 # ============================================================
 DB_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "szjw.com.br"),
+    "host": os.getenv("MYSQL_HOST", "seu_domínio"),
     "port": int(os.getenv("MYSQL_PORT", "3306")),
-    "user": os.getenv("MYSQL_USER", "szjw_wia"),
-    "password": os.getenv("MYSQL_PASSWORD", "Wia685618&zenilda"),
+    "user": os.getenv("MYSQL_USER", ""),
+    "password": os.getenv("MYSQL_PASSWORD", ""),
     "database": os.getenv("MYSQL_DATABASE", "szjw_cristaos"),
 }
 
 OUTPUT_PDF = os.getenv("OUTPUT_PDF", "relatorio_dados_cadastrais_faltantes.pdf")
 
-# Considere vazio tanto NULL quanto string vazia/espacos.
 CAMPOS_ANALISADOS = [
     "id_igreja",
     "nome_do_membro",
     "id_tipo",
+    "descricao",
     "telefone",
     "sexo",
     "data_nascimento",
@@ -54,14 +52,13 @@ CAMPOS_ANALISADOS = [
     "cidade",
     "estado",
     "email",
-    "ativo",
+    "status_atual",
     "data_batismo",
     "data_profissao_de_fe",
     "id_cargo",
     "data_cadastro",
 ]
 
-# Campos do layout conforme o formulario-modelo enviado.
 SECOES = {
     "1. Dados pessoais": [
         "nome_do_membro",
@@ -86,9 +83,9 @@ SECOES = {
     ],
     "4. Uso exclusivo da secretaria": [
         "data_cadastro",
-        "ativo",
+        "status_atual",
         "id_igreja",
-        "id_tipo",
+        "descricao",
         "id_cargo",
     ],
 }
@@ -98,6 +95,7 @@ ROTULOS = {
     "id_igreja": "ID Igreja",
     "nome_do_membro": "Nome do membro",
     "id_tipo": "ID Tipo",
+    "descricao": "Tipo de membro",
     "telefone": "Telefone",
     "sexo": "Sexo",
     "data_nascimento": "Data de nascimento",
@@ -112,7 +110,7 @@ ROTULOS = {
     "cidade": "Cidade",
     "estado": "Estado",
     "email": "E-mail",
-    "ativo": "Situacao (ativo)",
+    "status_atual": "Situacao atual",
     "data_batismo": "Data do batismo",
     "data_profissao_de_fe": "Data da profissao de fe",
     "id_cargo": "Cargo / funcao",
@@ -145,65 +143,76 @@ def valor_vazio(valor: Any, campo: str) -> bool:
     return False
 
 
-
 def formatar_data(valor: Any) -> str:
     if valor is None or valor == "":
         return ""
+
     if isinstance(valor, datetime):
         return valor.strftime("%d/%m/%Y %H:%M:%S")
+
     if isinstance(valor, date):
         return valor.strftime("%d/%m/%Y")
+
     texto = str(valor).strip()
+
     if not texto:
         return ""
+
     for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"):
         try:
             dt = datetime.strptime(texto, fmt)
             return dt.strftime("%d/%m/%Y") if fmt == "%Y-%m-%d" else dt.strftime("%d/%m/%Y %H:%M:%S")
         except ValueError:
             pass
-    return texto
 
+    return texto
 
 
 def formatar_telefone(valor: Any) -> str:
     if valor is None:
         return ""
+
     fone = "".join(ch for ch in str(valor) if ch.isdigit())
+
     if fone == "1234":
         return ""
+
     if len(fone) == 11:
         return f"({fone[:2]}) {fone[2:7]}-{fone[7:]}"
+
     if len(fone) == 10:
         return f"({fone[:2]}) {fone[2:6]}-{fone[6:]}"
-    return str(valor).strip()
 
+    return str(valor).strip()
 
 
 def formatar_cep(valor: Any) -> str:
     if valor is None or str(valor).strip() == "":
         return ""
+
     cep = "".join(ch for ch in str(valor) if ch.isdigit())
     cep = cep.zfill(8)
+
     if len(cep) == 8:
         return f"{cep[:5]}-{cep[5:]}"
-    return str(valor).strip()
 
+    return str(valor).strip()
 
 
 def formatar_valor(campo: str, valor: Any) -> str:
     if valor_vazio(valor, campo):
         return ""
+
     if campo in {"data_nascimento", "data_batismo", "data_profissao_de_fe", "data_cadastro"}:
         return formatar_data(valor)
+
     if campo == "telefone":
         return formatar_telefone(valor)
+
     if campo == "cep":
         return formatar_cep(valor)
-    if campo == "ativo":
-        return "Ativo" if int(valor) == 1 else "Inativo"
-    return str(valor).strip()
 
+    return str(valor).strip()
 
 
 def linha_vazia(tamanho: int = 40) -> str:
@@ -217,47 +226,111 @@ def conectar_mysql():
     return mysql.connector.connect(**DB_CONFIG)
 
 
-
 def montar_where_faltantes(campos: List[str]) -> str:
     condicoes = []
-    for campo in campos:
-        if campo == "telefone":
-            condicoes.append("telefone IS NULL")
-            condicoes.append("TRIM(CAST(telefone AS CHAR)) = ''")
-            condicoes.append("CAST(telefone AS CHAR) = '1234'")
-        elif campo in {"id_igreja", "id_tipo", "ativo", "id_cargo", "data_nascimento", "data_batismo", "data_profissao_de_fe", "data_cadastro", "cep"}:
-            condicoes.append(f"{campo} IS NULL")
-        else:
-            condicoes.append(f"{campo} IS NULL")
-            condicoes.append(f"TRIM({campo}) = ''")
-    return " OR ".join(condicoes)
 
+    for campo in campos:
+        if campo == "descricao":
+            condicoes.append("t.descricao IS NULL")
+            condicoes.append("TRIM(t.descricao) = ''")
+
+        elif campo == "telefone":
+            condicoes.append("m.telefone IS NULL")
+            condicoes.append("TRIM(CAST(m.telefone AS CHAR)) = ''")
+            condicoes.append("CAST(m.telefone AS CHAR) = '1234'")
+
+        elif campo in {
+            "id_igreja",
+            "id_tipo",
+            "id_cargo",
+            "data_nascimento",
+            "data_batismo",
+            "data_profissao_de_fe",
+            "data_cadastro",
+            "cep",
+        }:
+            condicoes.append(f"m.{campo} IS NULL")
+
+        elif campo == "status_atual":
+            condicoes.append("m.status_atual IS NULL")
+            condicoes.append("TRIM(m.status_atual) = ''")
+
+        else:
+            condicoes.append(f"m.{campo} IS NULL")
+            condicoes.append(f"TRIM(m.{campo}) = ''")
+
+    return " OR ".join(condicoes)
 
 
 def buscar_membros_com_faltas() -> List[Membro]:
     conexao = conectar_mysql()
+
     try:
         cursor = conexao.cursor(dictionary=True)
-        campos_select = ["id_membro"] + CAMPOS_ANALISADOS
+
+        campos_select = [
+            "m.id_membro",
+            "m.id_igreja",
+            "m.nome_do_membro",
+            "m.id_tipo",
+            "t.descricao AS descricao",
+            "m.telefone",
+            "m.sexo",
+            "m.data_nascimento",
+            "m.nacionalidade",
+            "m.naturalidade",
+            "m.nome_do_pai",
+            "m.nome_da_mae",
+            "m.tipo_sanguineo",
+            "m.estado_civil",
+            "m.cep",
+            "m.endereco",
+            "m.cidade",
+            "m.estado",
+            "m.email",
+            "m.status_atual",
+            "m.data_batismo",
+            "m.data_profissao_de_fe",
+            "m.id_cargo",
+            "m.data_cadastro",
+        ]
+
         sql = f"""
-            SELECT {', '.join(campos_select)}
-            FROM membros
-            WHERE {montar_where_faltantes(CAMPOS_ANALISADOS)}
-            ORDER BY nome_do_membro ASC
+            SELECT 
+                {', '.join(campos_select)}
+            FROM membros m
+            LEFT JOIN tipo t
+                ON t.id_tipo = m.id_tipo
+            WHERE 
+                m.status_atual = 'Ativo'
+                AND (
+                    {montar_where_faltantes(CAMPOS_ANALISADOS)}
+                )
+            ORDER BY m.nome_do_membro ASC
         """
+
         cursor.execute(sql)
         registros = cursor.fetchall()
 
         membros: List[Membro] = []
+
         for registro in registros:
-            faltantes = [campo for campo in CAMPOS_ANALISADOS if valor_vazio(registro.get(campo), campo)]
+            faltantes = [
+                campo
+                for campo in CAMPOS_ANALISADOS
+                if valor_vazio(registro.get(campo), campo)
+            ]
+
             membros.append(Membro(dados=registro, faltantes=faltantes))
+
         return membros
+
     finally:
         try:
             cursor.close()
         except Exception:
             pass
+
         conexao.close()
 
 
@@ -266,6 +339,7 @@ def buscar_membros_com_faltas() -> List[Membro]:
 # ============================================================
 def estilos_pdf():
     estilos_base = getSampleStyleSheet()
+
     return {
         "titulo": ParagraphStyle(
             "Titulo",
@@ -332,19 +406,32 @@ def estilos_pdf():
     }
 
 
+def par_rotulo_valor(
+    campo: str,
+    valor: str,
+    estilos: Dict[str, ParagraphStyle],
+    faltante: bool
+) -> List[Any]:
 
-def par_rotulo_valor(campo: str, valor: str, estilos: Dict[str, ParagraphStyle], faltante: bool) -> List[Any]:
     rotulo = Paragraph(ROTULOS.get(campo, campo), estilos["rotulo"])
     texto_valor = valor if valor else linha_vazia(48)
+
     if faltante:
         texto_valor += " <font color='#B91C1C'>(preencher)</font>"
+
     valor_p = Paragraph(texto_valor.replace("\n", "<br/>"), estilos["valor"])
+
     return [rotulo, Spacer(1, 1.5 * mm), valor_p]
 
 
+def tabela_campos(
+    membro: Membro,
+    campos: List[str],
+    estilos: Dict[str, ParagraphStyle]
+) -> Table:
 
-def tabela_campos(membro: Membro, campos: List[str], estilos: Dict[str, ParagraphStyle]) -> Table:
     linhas = []
+
     for campo in campos:
         valor = formatar_valor(campo, membro.dados.get(campo))
         faltante = campo in membro.faltantes
@@ -352,6 +439,7 @@ def tabela_campos(membro: Membro, campos: List[str], estilos: Dict[str, Paragrap
         linhas.append([conteudo])
 
     tabela = Table(linhas, colWidths=[180 * mm])
+
     tabela.setStyle(
         TableStyle(
             [
@@ -366,12 +454,13 @@ def tabela_campos(membro: Membro, campos: List[str], estilos: Dict[str, Paragrap
             ]
         )
     )
-    return tabela
 
+    return tabela
 
 
 def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
     estilos = estilos_pdf()
+
     doc = SimpleDocTemplate(
         arquivo_saida,
         pagesize=A4,
@@ -386,25 +475,44 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
     historia: List[Any] = []
 
     historia.append(Paragraph("IGREJA PRESBITERIANA INDEPENDENTE DE MUZAMBINHO", estilos["titulo"]))
-    historia.append(Paragraph("Relatorio de dados cadastrais faltantes - membros", estilos["subtitulo"]))
+    historia.append(Paragraph("Relatorio de dados cadastrais faltantes - membros ativos", estilos["subtitulo"]))
+
     historia.append(
         Paragraph(
-            f"Foram encontrados <b>{len(membros)}</b> membro(s) com pelo menos um campo nulo, em branco ou com telefone igual a 1234.",
+            f"Foram encontrados <b>{len(membros)}</b> membro(s) ativo(s) com pelo menos um campo nulo, em branco ou com telefone igual a 1234.",
             estilos["normal"],
         )
     )
+
     historia.append(Spacer(1, 5 * mm))
 
-    resumo_linhas = [[Paragraph("Nome do membro", estilos["rotulo"]), Paragraph("Campos pendentes", estilos["rotulo"])]]
+    resumo_linhas = [
+        [
+            Paragraph("Nome do membro", estilos["rotulo"]),
+            Paragraph("Tipo", estilos["rotulo"]),
+            Paragraph("Campos pendentes", estilos["rotulo"]),
+        ]
+    ]
+
     for membro in membros:
         nome = formatar_valor("nome_do_membro", membro.dados.get("nome_do_membro")) or "(sem nome)"
+        tipo = formatar_valor("descricao", membro.dados.get("descricao")) or "(sem tipo)"
         pendencias = ", ".join(ROTULOS.get(c, c) for c in membro.faltantes)
-        resumo_linhas.append([
-            Paragraph(nome, estilos["valor"]),
-            Paragraph(pendencias, estilos["valor"]),
-        ])
 
-    tabela_resumo = Table(resumo_linhas, colWidths=[60 * mm, 120 * mm], repeatRows=1)
+        resumo_linhas.append(
+            [
+                Paragraph(nome, estilos["valor"]),
+                Paragraph(tipo, estilos["valor"]),
+                Paragraph(pendencias, estilos["valor"]),
+            ]
+        )
+
+    tabela_resumo = Table(
+        resumo_linhas,
+        colWidths=[55 * mm, 35 * mm, 90 * mm],
+        repeatRows=1
+    )
+
     tabela_resumo.setStyle(
         TableStyle(
             [
@@ -421,19 +529,27 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
             ]
         )
     )
+
     historia.append(tabela_resumo)
 
     for idx, membro in enumerate(membros, start=1):
         historia.append(PageBreak())
 
         nome = formatar_valor("nome_do_membro", membro.dados.get("nome_do_membro")) or "(sem nome)"
+        tipo = formatar_valor("descricao", membro.dados.get("descricao")) or "(sem tipo)"
+
         historia.append(Paragraph("FORMULARIO DE CONFERENCIA CADASTRAL", estilos["titulo"]))
         historia.append(Paragraph(f"Membro: <b>{nome}</b>", estilos["normal"]))
+        historia.append(Paragraph(f"Tipo: <b>{tipo}</b>", estilos["normal"]))
         historia.append(Paragraph(f"ID do membro: <b>{membro.dados.get('id_membro', '')}</b>", estilos["normal"]))
-        historia.append(Paragraph(
-            "Campos preenchidos aparecem com seus valores atuais. Campos nulos, vazios ou telefone igual a 1234 aparecem com linha para preenchimento manual.",
-            estilos["pequeno"],
-        ))
+
+        historia.append(
+            Paragraph(
+                "Campos preenchidos aparecem com seus valores atuais. Campos nulos, vazios ou telefone igual a 1234 aparecem com linha para preenchimento manual.",
+                estilos["pequeno"],
+            )
+        )
+
         historia.append(Spacer(1, 4 * mm))
 
         for titulo_secao, campos in SECOES.items():
@@ -442,14 +558,17 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
             historia.append(Spacer(1, 4 * mm))
 
         historia.append(Paragraph("3. Declaracao", estilos["secao"]))
+
         declaracao = (
             "Declaro que as informacoes acima foram fornecidas por mim e autorizo seu uso para fins de cadastro, "
             "comunicacao e organizacao interna da igreja."
         )
+
         autorizacao_foto = (
             "[  ] Autorizo a IPI de Muzambinho a cadastrar minha foto no sistema da igreja, "
             "para fins de identificacao interna, organizacao cadastral e controle de presencas."
         )
+
         declaracao_tabela = Table(
             [
                 [Paragraph(declaracao, estilos["valor"])],
@@ -459,6 +578,7 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
             ],
             colWidths=[180 * mm],
         )
+
         declaracao_tabela.setStyle(
             TableStyle(
                 [
@@ -472,12 +592,17 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
                 ]
             )
         )
+
         historia.append(declaracao_tabela)
         historia.append(Spacer(1, 3 * mm))
-        historia.append(Paragraph(
-            f"Pendencias identificadas para este membro: <b>{', '.join(ROTULOS.get(c, c) for c in membro.faltantes)}</b>",
-            estilos["pequeno"],
-        ))
+
+        historia.append(
+            Paragraph(
+                f"Pendencias identificadas para este membro: <b>{', '.join(ROTULOS.get(c, c) for c in membro.faltantes)}</b>",
+                estilos["pequeno"],
+            )
+        )
+
         historia.append(Paragraph(f"Registro {idx} de {len(membros)}.", estilos["pequeno"]))
 
     doc.build(historia)
@@ -489,14 +614,17 @@ def gerar_pdf(membros: List[Membro], arquivo_saida: str) -> None:
 def main() -> None:
     try:
         membros = buscar_membros_com_faltas()
+
         if not membros:
-            print("Nenhum membro com pendencias cadastrais foi encontrado.")
+            print("Nenhum membro ativo com pendencias cadastrais foi encontrado.")
             return
 
         gerar_pdf(membros, OUTPUT_PDF)
         print(f"PDF gerado com sucesso: {OUTPUT_PDF}")
+
     except Error as erro_mysql:
         print(f"Erro ao acessar o MySQL: {erro_mysql}")
+
     except Exception as erro:
         print(f"Erro inesperado: {erro}")
         raise
