@@ -46,6 +46,7 @@ $menu = [
         ['chave' => 'prestacao_de_contas',         'titulo' => 'Prestação de Contas',    'link' => $baseUrl . 'relatorios/prestacao_contas.php'],
         ['chave' => 'envelopes',         'titulo' => 'QRCodes para Envelopes Dízimos',    'link' => $baseUrl . 'relatorios/envelopes_dizimos_pdf.php'],
         ['chave' => 'estatistica_anual',         'titulo' => 'Estatítica Anual',    'link' => $baseUrl . 'relatorios/estatistica_anual.php'],
+        ['chave' => 'classificados',         'titulo' => 'Membros Praticantes e Não Praticantes',    'link' => $baseUrl . 'relatorios/Lista_de_membros_classificados.php'],
     ],
 
     'Sessão' => [

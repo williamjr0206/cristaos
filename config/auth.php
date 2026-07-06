@@ -131,6 +131,7 @@ function temPermissao(string $chave): bool
             'professores',
             'acompanhamento_espiritual',
             'estatistica_anual',
+            'classificados',
             
 
             /* 🔐 ATAS - SOMENTE ADMIN */
@@ -210,6 +211,7 @@ function temPermissao(string $chave): bool
             'lista_de_presencas',
             'boas_vindas',
             'estatistica_anual',
+            'classificados',
             'sair'
  
         ]
