@@ -214,7 +214,21 @@ function temPermissao(string $chave): bool
             'classificados',
             'sair'
  
+        ],
+         /* =====================
+           VISITANTE
+        ====================== */
+        'VISITANTE' => [
+            'presencas',
+            'relatorios',
+            'consultas',
+            'lista_de_presencas',
+            'estatistica_anual',
+            'classificados',
+            'sair'
+ 
         ]
+    
     ];
 
     return in_array($chave, $permissoes[$perfil] ?? [], true);

@@ -138,7 +138,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <label>Perfil</label>
     <select name="perfil" required>
-        <?php foreach (['ADMIN','OPERADOR','LIDER','CONSULTA','CONSELHO'] as $u): ?>
+        <?php foreach (['ADMIN','OPERADOR','LIDER','CONSULTA','CONSELHO','VISITANTE'] as $u): ?>
             <option value="<?= $u ?>" <?= ($editar && $editar['perfil'] === $u) ? 'selected' : '' ?>>
                 <?= $u ?>
             </option>
