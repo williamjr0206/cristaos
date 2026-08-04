@@ -225,6 +225,10 @@ function temPermissao(string $chave): bool
             'lista_de_presencas',
             'estatistica_anual',
             'classificados',
+            'cursos',
+            'eventos',
+            'aulas',
+            'professores',
             'sair'
  
         ]

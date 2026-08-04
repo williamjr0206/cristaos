@@ -100,7 +100,7 @@ $stmt = $pdo->query("
     FROM aulas
     INNER JOIN eventos ON aulas.id_evento = eventos.id_evento
     INNER JOIN cursos ON aulas.id_curso = cursos.id_curso
-    ORDER BY data_aula
+    ORDER BY data_aula Desc
 ");
 
 $aulas = $stmt->fetchAll(PDO::FETCH_ASSOC);
