@@ -14,7 +14,7 @@ $lista = [];
 
 if ($data_inicio && $data_fim) {
 
-    $sql = "SELECT nome_do_membro, data_nascimento
+    $sql = "SELECT id_membro, nome_do_membro, data_nascimento, telefone, email
             FROM membros
             WHERE DATE_FORMAT(data_nascimento, '%m-%d') 
             BETWEEN DATE_FORMAT(:inicio, '%m-%d') 
@@ -63,12 +63,36 @@ if ($data_inicio && $data_fim) {
     <tr>
         <th>Nome</th>
         <th>Data</th>
+        <th>Contato</th>
+        <th>Ação</th>
     </tr>
 
     <?php foreach ($lista as $l): ?>
     <tr>
         <td><?= htmlspecialchars($l['nome_do_membro']) ?></td>
         <td><?= date('d/m', strtotime($l['data_nascimento'])) ?></td>
+        <?php
+            $tel = preg_replace('/\D/', '', (string)($l['telefone'] ?? ''));
+            $temWhatsapp = strlen($tel) >= 10 && $tel !== '1234';
+            $temEmail = filter_var($l['email'] ?? '', FILTER_VALIDATE_EMAIL);
+        ?>
+        <td>
+            <?= $temWhatsapp ? 'WhatsApp ' : '' ?>
+            <?= ($temWhatsapp && $temEmail) ? ' / ' : '' ?>
+            <?= $temEmail ? 'E-mail' : ((!$temWhatsapp) ? 'Sem contato cadastrado' : '') ?>
+        </td>
+        <td>
+            <?php if ($temWhatsapp): ?>
+                <a target="_blank" href="felicitacoes_pdf.php?id=<?= (int)$l['id_membro'] ?>&acao=whatsapp">💬 Felicitar pelo WhatsApp</a>
+            <?php endif; ?>
+            <?php if ($temWhatsapp && $temEmail): ?>&nbsp; | &nbsp;<?php endif; ?>
+            <?php if ($temEmail): ?>
+                <a href="felicitacoes_pdf.php?id=<?= (int)$l['id_membro'] ?>&acao=email">✉️ Felicitar por e-mail</a>
+            <?php endif; ?>
+            <?php if ($temWhatsapp || $temEmail): ?>
+                &nbsp; | &nbsp;<a target="_blank" href="felicitacoes_pdf.php?id=<?= (int)$l['id_membro'] ?>&acao=pdf">📄 Carta</a>
+            <?php endif; ?>
+        </td>
     </tr>
     <?php endforeach; ?>
 </table>

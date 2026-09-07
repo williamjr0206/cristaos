@@ -148,7 +148,7 @@ $stmt = $pdo->query("
     FROM visitantes 
     INNER JOIN tipo ON visitantes.id_membro = tipo.id_tipo
     LEFT JOIN eventos ON visitantes.id_evento = eventos.id_evento
-    ORDER BY visitantes.nome
+    ORDER BY visitantes.data_cadastro desc
 ");
 
 $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -157,140 +157,176 @@ $visitantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Visitantes</title>
-
 <style>
-    body { font-family: Arial; margin: 20px; }
-    form { margin-bottom: 30px; }
-    input, select { margin: 6px 0; padding: 6px; width: 360px; display: block; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    a { margin-right: 10px; }
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; margin:20px; background:#f5f6f7; color:#222; }
+.pagina { max-width:1200px; margin:0 auto; }
+.form-container,.lista-container { background:#fff; padding:25px; border:1px solid #ddd; border-radius:7px; margin-bottom:25px; }
+h1,h2 { margin-top:0; }
+.titulo-secao { margin-top:25px; margin-bottom:15px; padding-bottom:7px; border-bottom:1px solid #eee; font-size:18px; font-weight:bold; }
+.campo { margin-bottom:15px; }
+.linha { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px; }
+.linha-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px; margin-bottom:15px; }
+label { display:block; margin-bottom:5px; font-weight:bold; font-size:14px; }
+input,select,textarea { width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; font-size:15px; background:#fff; font-family:Arial,sans-serif; }
+textarea { min-height:90px; resize:vertical; }
+input:focus,select:focus,textarea:focus { outline:none; border-color:#777; box-shadow:0 0 0 2px rgba(0,0,0,.06); }
+.ajuda { display:block; margin-top:5px; color:#777; font-size:12px; }
+.acoes { display:flex; gap:10px; flex-wrap:wrap; margin-top:25px; padding-top:20px; border-top:1px solid #eee; }
+.btn { display:inline-block; padding:11px 18px; border:0; border-radius:5px; text-decoration:none; cursor:pointer; font-size:15px; }
+.btn-salvar { background:#333; color:#fff; }
+.btn-voltar { background:#eee; color:#333; border:1px solid #ccc; }
+.tabela-wrap { width:100%; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; min-width:1100px; }
+th,td { padding:10px 8px; border-bottom:1px solid #e5e5e5; text-align:left; vertical-align:top; font-size:14px; }
+th { background:#f3f3f3; }
+tbody tr:hover { background:#fafafa; }
+.acao-link { display:inline-block; margin:2px 8px 2px 0; text-decoration:none; }
+.editar { color:#245b91; } .excluir { color:#a52828; }
+@media(max-width:800px) {
+ body { margin:10px; }
+ .linha,.linha-3 { grid-template-columns:1fr; gap:0; margin-bottom:0; }
+ .linha>div,.linha-3>div { margin-bottom:15px; }
+ .form-container,.lista-container { padding:18px; }
+}
 </style>
-
 </head>
 <body>
-
-<h2><?= $editar ? 'Editar Visitante' : 'Novo Visitante' ?></h2>
-
+<div class="pagina">
+<div class="form-container">
+<h1><?= $editar ? 'Editar visitante' : 'Novo visitante' ?></h1>
 <form method="post">
-
 <input type="hidden" name="id" value="<?= $editar['id_visitante'] ?? '' ?>">
 
-<label>Data Cadastro</label>
-<input type="datetime-local" name="data_cadastro"
-    value="<?= date('Y-m-d\TH:i', strtotime($data_fixa)) ?>"
-    required>
+<div class="titulo-secao">Identificação da visita</div>
+<div class="linha">
+ <div>
+  <label for="data_cadastro">Data e hora da visita *</label>
+  <input type="datetime-local" id="data_cadastro" name="data_cadastro"
+         value="<?= date('Y-m-d\TH:i', strtotime($data_fixa)) ?>" required>
+ </div>
+ <div>
+  <label for="id_evento">Evento *</label>
+  <select name="id_evento" id="id_evento" required>
+   <option value="">Selecione...</option>
+   <?php foreach ($eventos as $e): ?>
+    <option value="<?= $e['id_evento'] ?>" <?= (isset($editar['id_evento']) && $editar['id_evento'] == $e['id_evento']) ? 'selected' : '' ?>>
+     <?= htmlspecialchars($e['descricao']) ?>
+    </option>
+   <?php endforeach; ?>
+  </select>
+ </div>
+</div>
 
-<label>Nome</label>
-<input name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
+<div class="campo">
+ <label for="nome">Nome completo *</label>
+ <input type="text" id="nome" name="nome" required value="<?= htmlspecialchars($editar['nome'] ?? '') ?>">
+</div>
 
-<label>Sexo</label>
-<select name="sexo" required>
-    <?php foreach (['Masculino','Feminino'] as $s): ?>
-        <option value="<?= $s ?>" <?= (isset($editar['sexo']) && $editar['sexo'] == $s) ? 'selected' : '' ?>>
-            <?= $s ?>
-        </option>
-    <?php endforeach; ?>
-</select>
+<div class="linha">
+ <div>
+  <label for="sexo">Sexo *</label>
+  <select name="sexo" id="sexo" required>
+   <option value="">Selecione...</option>
+   <?php foreach (['Masculino','Feminino'] as $s): ?>
+    <option value="<?= $s ?>" <?= (isset($editar['sexo']) && $editar['sexo'] == $s) ? 'selected' : '' ?>><?= $s ?></option>
+   <?php endforeach; ?>
+  </select>
+ </div>
+ <div>
+  <label for="id_tipomembro">Tipo *</label>
+  <select name="id_tipomembro" id="id_tipomembro" required>
+   <option value="">Selecione...</option>
+   <?php foreach ($tipos as $t): ?>
+    <option value="<?= $t['id_tipo'] ?>" <?= (isset($editar['id_membro']) && $editar['id_membro'] == $t['id_tipo']) ? 'selected' : '' ?>>
+     <?= htmlspecialchars($t['descricao']) ?>
+    </option>
+   <?php endforeach; ?>
+  </select>
+ </div>
+</div>
 
-<label>Tipo de Membro</label>
-<select name="id_tipomembro" required>
-    <option value="">Selecione</option>
-    <?php foreach ($tipos as $t): ?>
-        <option value="<?= $t['id_tipo'] ?>"
-            <?= (isset($editar['id_membro']) && $editar['id_membro'] == $t['id_tipo']) ? 'selected' : '' ?>>
-            <?= $t['descricao'] ?>
-        </option>
-    <?php endforeach; ?>
-</select>
+<div class="titulo-secao">Contato e endereço</div>
+<div class="linha">
+ <div>
+  <label for="telefone">Telefone / WhatsApp</label>
+  <input type="text" id="telefone" name="telefone" value="<?= htmlspecialchars($editar['telefone'] ?? '') ?>">
+  <span class="ajuda">Informe o DDD e o número.</span>
+ </div>
+ <div>
+  <label for="email">E-mail</label>
+  <input type="email" id="email" name="email" value="<?= htmlspecialchars($editar['email'] ?? '') ?>">
+ </div>
+</div>
+<div class="linha">
+ <div>
+  <label for="cidade">Cidade</label>
+  <input type="text" id="cidade" name="cidade" value="<?= htmlspecialchars($editar['cidade'] ?? '') ?>">
+ </div>
+ <div>
+  <label for="endereco">Endereço</label>
+  <input type="text" id="endereco" name="endereco" value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
+ </div>
+</div>
 
-<label>Evento</label>
-<select name="id_evento" required>
-    <option value="">Selecione</option>
-    <?php foreach ($eventos as $e): ?>
-        <option value="<?= $e['id_evento'] ?>"
-            <?= (isset($editar['id_evento']) && $editar['id_evento'] == $e['id_evento']) ? 'selected' : '' ?>>
-            <?= htmlspecialchars($e['descricao']) ?>
-        </option>
-    <?php endforeach; ?>
-</select>
+<div class="titulo-secao">Acompanhamento</div>
+<div class="campo">
+ <label for="oracao">Pedido de oração</label>
+ <textarea id="oracao" name="oracao"><?= htmlspecialchars($editar['oracao'] ?? '') ?></textarea>
+</div>
+<div class="campo">
+ <label for="cadastrante">Cadastrado por</label>
+ <select name="cadastrante" id="cadastrante">
+  <option value="">Selecione...</option>
+  <?php foreach ($membros as $m): ?>
+   <option value="<?= $m['id_membro'] ?>" <?= (isset($editar['cadastrante']) && $editar['cadastrante'] == $m['id_membro']) ? 'selected' : '' ?>>
+    <?= htmlspecialchars($m['nome_do_membro']) ?>
+   </option>
+  <?php endforeach; ?>
+ </select>
+</div>
 
-<label>Telefone</label>
-<input name="telefone" value="<?= htmlspecialchars($editar['telefone'] ?? '') ?>">
-
-<label>Email</label>
-<input name="email" value="<?= htmlspecialchars($editar['email'] ?? '') ?>">
-
-<label>Cidade</label>
-<input name="cidade" value="<?= htmlspecialchars($editar['cidade'] ?? '') ?>">
-
-<label>Endereço</label>
-<input name="endereco" value="<?= htmlspecialchars($editar['endereco'] ?? '') ?>">
-
-<label>Pedido de Oração</label>
-<input name="oracao" value="<?= htmlspecialchars($editar['oracao'] ?? '') ?>">
-
-<label>Cadastrado por</label>
-<select name="cadastrante">
-    <option value="">Selecione</option>
-    <?php foreach ($membros as $m): ?>
-        <option value="<?= $m['id_membro'] ?>"
-            <?= (isset($editar['cadastrante']) && $editar['cadastrante'] == $m['id_membro']) ? 'selected' : '' ?>>
-            <?= htmlspecialchars($m['nome_do_membro']) ?>
-        </option>
-    <?php endforeach; ?>
-</select>
-
-<button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
-
-<?php if ($editar): ?>
-    <a href="visitantes.php">Cancelar</a>
-<?php endif; ?>
-
+<div class="acoes">
+ <button type="submit" class="btn btn-salvar"><?= $editar ? 'Atualizar visitante' : 'Salvar visitante' ?></button>
+ <?php if ($editar): ?><a href="visitantes.php" class="btn btn-voltar">Cancelar</a><?php endif; ?>
+</div>
 </form>
+</div>
 
-<h2>Lista de Visitantes</h2>
-
+<div class="lista-container">
+<h2>Lista de visitantes</h2>
+<div class="tabela-wrap">
 <table>
-<tr>
-    <th>Nome</th>
-    <th>Data Cadastro</th>
-    <th>Sexo</th>
-    <th>Tipo</th>
-    <th>Evento</th>
-    <th>Telefone</th>
-    <th>Email</th>
-    <th>Cidade</th>
-    <th>Endereço</th>
-    <th>Oração</th>
-    <th>Ações</th>
-</tr>
-
+<thead><tr>
+<th>Nome</th><th>Data</th><th>Sexo</th><th>Tipo</th><th>Evento</th>
+<th>Telefone</th><th>E-mail</th><th>Cidade</th><th>Endereço</th><th>Oração</th><th>Ações</th>
+</tr></thead>
+<tbody>
 <?php foreach ($visitantes as $v): ?>
 <tr>
-    <td><?= htmlspecialchars($v['nome']) ?></td>
-    <td><?= htmlspecialchars($v['data_cadastro']) ?></td>
-    <td><?= htmlspecialchars($v['sexo']) ?></td>
-    <td><?= htmlspecialchars($v['tipo_descricao']) ?></td>
-    <td><?= htmlspecialchars($v['evento_descricao'] ?? '') ?></td>
-    <td><?= htmlspecialchars($v['telefone']) ?></td>
-    <td><?= htmlspecialchars($v['email']) ?></td>
-    <td><?= htmlspecialchars($v['cidade']) ?></td>
-    <td><?= htmlspecialchars($v['endereco']) ?></td>
-    <td><?= htmlspecialchars($v['oracao']) ?></td>
-    <td>
-        <a href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
-        <a href="visitantes.php?delete=<?= $v['id_visitante'] ?>"
-           onclick="return confirm('Deseja excluir este visitante?')">
-           Excluir
-        </a>
-    </td>
+<td><?= htmlspecialchars($v['nome']) ?></td>
+<td><?= !empty($v['data_cadastro']) ? date('d/m/Y H:i', strtotime($v['data_cadastro'])) : '' ?></td>
+<td><?= htmlspecialchars($v['sexo']) ?></td>
+<td><?= htmlspecialchars($v['tipo_descricao']) ?></td>
+<td><?= htmlspecialchars($v['evento_descricao'] ?? '') ?></td>
+<td><?= htmlspecialchars($v['telefone']) ?></td>
+<td><?= htmlspecialchars($v['email']) ?></td>
+<td><?= htmlspecialchars($v['cidade']) ?></td>
+<td><?= htmlspecialchars($v['endereco']) ?></td>
+<td><?= htmlspecialchars($v['oracao']) ?></td>
+<td>
+ <a class="acao-link editar" href="visitantes.php?edit=<?= $v['id_visitante'] ?>">Editar</a>
+ <a class="acao-link excluir" href="visitantes.php?delete=<?= $v['id_visitante'] ?>" onclick="return confirm('Deseja excluir este visitante?')">Excluir</a>
+</td>
 </tr>
 <?php endforeach; ?>
-
+</tbody>
 </table>
-
+</div>
+</div>
+</div>
 </body>
 </html>

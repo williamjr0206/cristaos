@@ -110,7 +110,7 @@ $professores = $stmt -> fetchAll(PDO::FETCH_ASSOC);
 </form>
 
 
-<h2>Lista dos Professores(as) nas Igrejas Evangélicas:</h2>
+<h2>Lista dos Professores(as) da IPI de Muzambinho:</h2>
 
 <table>
     <tr>
