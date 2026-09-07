@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = "UPDATE professores SET nome_do_professor = :professor
          WHERE id_professor = :id";
 
-        $stmt = $con->prepare($sql);
+        $stmt = $pdo->prepare($sql);
         $stmt->bindParam('id', $id);
         $stmt->bindParam(':professor',$professor);
         } else {

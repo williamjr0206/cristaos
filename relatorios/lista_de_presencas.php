@@ -200,13 +200,29 @@ if (!empty($id_evento)) {
     $stmtVisitantes->execute();
     $visitantes = $stmtVisitantes->fetchAll(PDO::FETCH_ASSOC);
 
+    /*
+     * Um visitante pode possuir vários registros na tabela visitantes,
+     * um para cada dia em que compareceu. Para o relatório, agrupamos
+     * esses registros pelo nome e mostramos apenas uma linha por pessoa.
+     */
+    $visitantes_unicos = [];
+
     foreach ($visitantes as $v) {
-        $chave = 'V_' . $v['id_visitante'];
-        $participantes[$chave] = [
-            'tipo' => 'VISITANTE',
-            'id'   => $v['id_visitante'],
-            'nome' => $v['nome']
-        ];
+        $nomeVisitante = trim($v['nome']);
+        $nomeNormalizado = function_exists('mb_strtolower')
+            ? mb_strtolower($nomeVisitante, 'UTF-8')
+            : strtolower($nomeVisitante);
+
+        $chave = 'V_' . md5($nomeNormalizado);
+
+        if (!isset($visitantes_unicos[$chave])) {
+            $visitantes_unicos[$chave] = true;
+            $participantes[$chave] = [
+                'tipo' => 'VISITANTE',
+                'id'   => $v['id_visitante'],
+                'nome' => $nomeVisitante
+            ];
+        }
 
         $dataVisitante = date('Y-m-d', strtotime($v['data_cadastro']));
 
@@ -214,16 +230,19 @@ if (!empty($id_evento)) {
             $dataAula = date('Y-m-d', strtotime($dadosAula['data_aula']));
 
             if ($dataVisitante === $dataAula) {
-                $presencas_por_participante[$chave][$id_aula] = true;
+                /* Evita contar duas vezes a mesma pessoa na mesma aula. */
+                if (empty($presencas_por_participante[$chave][$id_aula])) {
+                    $presencas_por_participante[$chave][$id_aula] = true;
 
-                if (isset($totais_por_aula[$id_aula])) {
-                    $totais_por_aula[$id_aula]++;
+                    if (isset($totais_por_aula[$id_aula])) {
+                        $totais_por_aula[$id_aula]++;
+                    }
                 }
             }
         }
     }
 
-    $total_visitantes = count($visitantes);
+    $total_visitantes = count($visitantes_unicos);
 
     /*
     =========================================================
@@ -460,14 +479,16 @@ if (!empty($id_evento)) {
                             $classe = $presente ? 'presente' : 'falta';
                             $texto = $presente ? 'P' : 'F';
                         } else {
+                            // Visitante: após agrupar todas as ocorrências pelo nome,
+                            // tratamos cada aula como presença ou falta, como nos membros.
                             if ($presente) {
                                 $total_presencas++;
-                                $classe = 'presente';
-                                $texto = 'P';
                             } else {
-                                $classe = 'neutro';
-                                $texto = '-';
+                                $total_faltas++;
                             }
+
+                            $classe = $presente ? 'presente' : 'falta';
+                            $texto = $presente ? 'P' : 'F';
                         }
                     ?>
                     <td class="<?= $classe ?>">
@@ -490,8 +511,8 @@ if (!empty($id_evento)) {
     </table>
 
     <div class="resumo">
-        <p><strong>Legenda:</strong> P = Presença | F = Falta | - = não se aplica</p>
-        <p><strong>Observação:</strong> os visitantes são relacionados ao evento pelo campo <code>id_evento</code> e marcados na aula cuja data coincide com a data de cadastro.</p>
+        <p><strong>Legenda:</strong> P = Presença | F = Falta</p>
+        <p><strong>Observação:</strong> os visitantes são agrupados pelo nome e suas presenças são consolidadas em uma única linha, considerando a data de cadastro correspondente a cada aula.</p>
     </div>
 
 <?php elseif (!empty($id_evento)): ?>
