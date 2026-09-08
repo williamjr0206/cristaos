@@ -102,7 +102,7 @@ $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <input type="hidden" name="id" value="<?= $editar['id_grupo'] ?? '' ?>">
 
-<label>Descrição do Evento</label>
+<label>Descrição do Grupo:</label>
 <input name="descricao" required value="<?= htmlspecialchars($editar['descricao'] ?? '') ?>">
 
 <button type="submit"><?= $editar ? 'Atualizar' : 'Salvar' ?></button>
